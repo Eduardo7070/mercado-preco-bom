@@ -269,7 +269,7 @@ Por exemplo, a tela de estorno utiliza:
 - `public/js/caixa/estornar.js`;
 - o layout e os arquivos `comum.css` e `comum.js` compartilhados.
 
-## Verificações
+## Verificação
 
 ```powershell
 composer check-platform-reqs
