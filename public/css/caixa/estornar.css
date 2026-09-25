@@ -1,0 +1,67 @@
+.estorno {
+    background: #ccddd1;
+    border: 1px solid #8aa995;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.estorno-barra {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    background: #124b34;
+    color: #fff;
+    padding: 12px 17px;
+    font-size: 11px;
+}
+.estorno-barra strong {
+    font-size: 17px;
+    letter-spacing: 1px;
+}
+.estorno-titulo {
+    margin: 10px;
+    text-align: center;
+    background: #fff;
+    padding: 10px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #145b3d;
+    border: 1px solid #adc7b4;
+}
+.estorno .colunas {
+    padding: 0 10px 10px;
+    gap: 10px;
+}
+.estorno .resumo {
+    margin-bottom: 20px;
+}
+.estorno .campos {
+    margin-top: 20px;
+}
+.total-estorno {
+    display: block;
+    font-size: 42px;
+    letter-spacing: -1.5px;
+    color: #145b3d;
+    font-variant-numeric: tabular-nums;
+}
+.estorno-rodape {
+    background: #1f533b;
+    color: #deead9;
+    font-size: 10px;
+    padding: 12px 17px;
+}
+.estorno .tabela-scroll table {
+    min-width: 330px;
+}
+@media (max-width: 520px) {
+    .estorno-barra {
+        flex-wrap: wrap;
+    }
+    .estorno-titulo {
+        font-size: 19px;
+    }
+    .total-estorno {
+        font-size: 36px;
+    }
+}

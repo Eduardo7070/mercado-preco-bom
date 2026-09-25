@@ -1,0 +1,12 @@
+.inativacao .regras {
+    padding-left: 18px;
+    margin: 0;
+    line-height: 1.9;
+    color: #60725f;
+}
+.inativacao #motivo {
+    margin-top: 8px;
+}
+.inativacao .resumo {
+    margin: 18px 0;
+}

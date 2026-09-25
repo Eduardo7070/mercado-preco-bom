@@ -1,0 +1,51 @@
+# Credenciais e configuracao de ambiente local
+.env
+.env.*
+!.env.example
+/auth.json
+
+# Dependencias instaladas
+/node_modules/
+/vendor/
+
+# Arquivos gerados pelo Laravel e pelo Vite
+/public/build/
+/public/fonts-manifest.dev.json
+/public/hot
+/public/storage
+/bootstrap/ssr/
+/storage/*.key
+/storage/pail/
+
+# Logs, caches e relatorios de testes
+*.log
+.phpunit.result.cache
+/.phpunit.cache/
+/coverage/
+/test-results/
+/playwright-report/
+/storage/app/prototipos/
+
+# Configuracoes locais de editores e ferramentas
+/.codex/
+/.cursor/
+/.idea/
+/.nova/
+/.vscode/
+/.zed/
+.phpactor.json
+_ide_helper.php
+Homestead.json
+Homestead.yaml
+
+# Arquivos temporarios do sistema e do editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# Copias locais da entrega academica
+/atividade individual - tela frente de caixa - H03.001/
+/atividade individual - tela frente de caixa - H03.001.7z

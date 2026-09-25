@@ -1,0 +1,14 @@
+.produto-formulario .painel:first-child {
+    border-top: 3px solid #145b3d;
+}
+.produto-formulario #preco {
+    font-size: 20px;
+    font-weight: bold;
+}
+.produto-formulario .check {
+    align-self: center;
+}
+.produto-formulario .ajuda {
+    margin-top: 0;
+    margin-bottom: 22px;
+}

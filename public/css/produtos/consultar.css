@@ -1,0 +1,18 @@
+.consulta .detalhes {
+    padding: 22px;
+    background: #f4f7f0;
+    border-top: 2px solid #507b47;
+}
+.consulta .resumo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 30px;
+}
+.consulta table {
+    min-width: 720px;
+}
+@media (max-width: 600px) {
+    .consulta .resumo {
+        grid-template-columns: 1fr;
+    }
+}
