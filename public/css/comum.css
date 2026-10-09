@@ -70,7 +70,6 @@ summary:focus-visible {
 .marca {
     display: flex;
     align-items: center;
-    gap: 10px;
     text-decoration: none;
     min-width: 0;
 }
@@ -82,6 +81,12 @@ summary:focus-visible {
     max-width: 180px;
     object-fit: contain;
     flex: 0 0 auto;
+}
+
+.marca-logo {
+    height: 46px;
+    width: auto;       
+    object-fit: contain; 
 }
 .marca-simbolo {
     border: 2px solid #d4e7c8;
@@ -576,7 +581,6 @@ input[type="number"] {
     }
 }
 
-/* A história permanece na própria view de cada protótipo. */
 .historia-usuario { background: #f8faf5; border: 1px solid #cbd8c5; border-left: 4px solid #39714b; border-radius: 3px; padding: 17px 20px; margin-bottom: 20px; }
 .historia-legenda { display: block; color: #65785e; text-transform: uppercase; font-size: 10px; letter-spacing: 1px; margin-bottom: 9px; }
 .historia-cabecalho { display: flex; align-items: baseline; gap: 12px; }
