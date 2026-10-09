@@ -122,12 +122,10 @@ const fs = require("node:fs/promises");
         await confirm();
         await open("estoque/consultar");
         await page.locator("#busca").fill("1003");
-        await page
-            .getByRole("button", {
-                name: "Ver detalhes de Café tradicional 500 g",
-            })
-            .click();
-        await page.locator("#detalhes").waitFor();
+        await page.getByRole("button", { name: "Detalhes" }).first().click();
+        await page.locator("#modal-detalhes[open]").waitFor();
+        assert.match(await page.locator("#titulo-detalhes").textContent(), /Café tradicional 500 g/);
+        await page.locator("#modal-detalhes .secundario").click();
         await open("estoque/ajustar");
         await page.locator("#tipo").selectOption("avaria");
         await page.locator("#quantidade").fill("2");
@@ -223,3 +221,4 @@ const fs = require("node:fs/promises");
     console.error(e);
     process.exit(1);
 });
+

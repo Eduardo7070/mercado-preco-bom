@@ -1,18 +1,44 @@
-.consulta .detalhes {
-    padding: 22px;
-    background: #f4f7f0;
-    border-top: 2px solid #507b47;
+.consulta table {
+    min-width: 820px;
 }
-.consulta .resumo {
+.consulta th:last-child,
+.consulta td:last-child {
+    min-width: 180px;
+}
+.acoes-linha {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.acoes-linha .link {
+    padding: 4px 0;
+}
+.perigo-link {
+    color: #963e35;
+}
+.modal-consulta {
+    max-width: 720px;
+}
+.modal-consulta .campos {
+    margin-top: 18px;
+}
+.modal-resumo {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0 30px;
+    margin-top: 18px;
 }
-.consulta table {
-    min-width: 720px;
+.texto-modal {
+    font-size: 14px;
+    line-height: 1.8;
+    margin: 20px 0 8px;
 }
 @media (max-width: 600px) {
-    .consulta .resumo {
+    .modal-resumo {
         grid-template-columns: 1fr;
+    }
+    .acoes-linha {
+        gap: 8px;
     }
 }
