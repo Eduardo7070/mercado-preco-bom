@@ -29,7 +29,7 @@
                     <th>Unidade</th>
                     <th class="numerico">Preço</th>
                     <th>Situação</th>
-                    <th>Ação</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody id="resultados"></tbody>
@@ -38,16 +38,57 @@
     <p id="vazio" class="vazio" hidden>
         Nenhum produto encontrado. Tente outro código ou nome.
     </p>
-    <section
-        id="detalhes"
-        class="detalhes"
-        aria-label="Detalhes do produto"
-        hidden
-    >
-        <h3 id="nome-detalhe"></h3>
-        <dl id="dados-detalhe" class="resumo"></dl>
-    </section>
 </section>
+
+<dialog id="modal-detalhes" class="modal-consulta" aria-labelledby="titulo-detalhes">
+    <form method="dialog">
+        <div class="dialogo-cabecalho">
+            <h2 id="titulo-detalhes">Detalhes do produto</h2>
+            <button value="cancelar" class="fechar" aria-label="Fechar">×</button>
+        </div>
+        <dl id="dados-detalhes" class="resumo modal-resumo"></dl>
+        <div class="acoes">
+            <button value="cancelar" class="botao secundario">Fechar</button>
+        </div>
+    </form>
+</dialog>
+
+<dialog id="modal-editar" class="modal-consulta" aria-labelledby="titulo-editar">
+    <form method="dialog" id="form-editar">
+        <div class="dialogo-cabecalho">
+            <h2 id="titulo-editar">Editar produto</h2>
+            <button value="cancelar" class="fechar" aria-label="Fechar">×</button>
+        </div>
+        <div class="campos">
+            <label class="campo">Código interno<input id="editar-codigo" readonly /></label>
+            <label class="campo">Código de barras<input id="editar-barras" /></label>
+            <label class="campo inteiro">Descrição<input id="editar-nome" /></label>
+            <label class="campo">Categoria<input id="editar-categoria" /></label>
+            <label class="campo">Unidade<input id="editar-unidade" /></label>
+            <label class="campo">Preço<input id="editar-preco" type="number" min="0" step="0.01" /></label>
+        </div>
+        <p class="ajuda">Alteração apenas demonstrativa. Os dados da tabela não serão gravados.</p>
+        <div class="acoes">
+            <button value="cancelar" class="botao secundario">Cancelar</button>
+            <button value="confirmar" class="botao">Salvar simulação</button>
+        </div>
+    </form>
+</dialog>
+
+<dialog id="modal-deletar" class="modal-consulta" aria-labelledby="titulo-deletar">
+    <form method="dialog" id="form-deletar">
+        <div class="dialogo-cabecalho">
+            <h2 id="titulo-deletar">Deletar produto</h2>
+            <button value="cancelar" class="fechar" aria-label="Fechar">×</button>
+        </div>
+        <p id="texto-deletar" class="texto-modal"></p>
+        <p class="ajuda">Esta é uma ação simulada. Nenhum produto será removido.</p>
+        <div class="acoes">
+            <button value="cancelar" class="botao secundario">Cancelar</button>
+            <button value="confirmar" class="botao perigo">Confirmar exclusão</button>
+        </div>
+    </form>
+</dialog>
 @endsection
 
 @section('historia')

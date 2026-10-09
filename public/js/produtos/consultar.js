@@ -2,6 +2,70 @@
 (() => {
     const estoque = false;
     const $ = (id) => document.getElementById(id);
+
+    function paresDoProduto(p) {
+        return {
+            Código: p.codigo,
+            "Código de barras": p.barras,
+            Categoria: p.categoria,
+            Unidade: p.unidade,
+            Preço: MPB.moeda(p.preco),
+            Situação: p.ativo ? "Ativo" : "Inativo",
+            "Saldo depósito": p.deposito + " UN",
+            "Saldo gôndola": p.gondola + " UN",
+            "Saldo total": p.deposito + p.gondola + " UN",
+            "Última movimentação": "25/09/2026 · 08:30",
+        };
+    }
+
+    function preencherResumo(id, dados) {
+        const lista = $(id);
+        lista.replaceChildren();
+        Object.entries(dados).forEach(([rotulo, valor]) => {
+            const div = document.createElement("div");
+            const dt = document.createElement("dt");
+            const dd = document.createElement("dd");
+            dt.textContent = rotulo;
+            dd.textContent = valor;
+            div.append(dt, dd);
+            lista.append(div);
+        });
+    }
+
+    function abrirDetalhes(p) {
+        MPB.texto("titulo-detalhes", "Detalhes de " + p.nome);
+        preencherResumo("dados-detalhes", paresDoProduto(p));
+        $("modal-detalhes").showModal();
+    }
+
+    function abrirEditar(p) {
+        MPB.texto("titulo-editar", "Editar " + p.nome);
+        $("editar-codigo").value = p.codigo;
+        $("editar-barras").value = p.barras;
+        $("editar-nome").value = p.nome;
+        $("editar-categoria").value = p.categoria;
+        $("editar-unidade").value = p.unidade;
+        $("editar-preco").value = p.preco.toFixed(2);
+        $("modal-editar").showModal();
+    }
+
+    function abrirDeletar(p) {
+        MPB.texto(
+            "texto-deletar",
+            "Deseja deletar " + p.nome + "? Código " + p.codigo + ".",
+        );
+        $("modal-deletar").showModal();
+    }
+
+    function botaoAcao(texto, classe, aoClicar) {
+        const botao = document.createElement("button");
+        botao.type = "button";
+        botao.className = classe;
+        botao.textContent = texto;
+        botao.addEventListener("click", aoClicar);
+        return botao;
+    }
+
     function pesquisar() {
         const termo = MPB.normalizar($("busca").value.trim());
         const itens = MPB.produtos.filter(
@@ -14,7 +78,6 @@
                     p.ativo === ($("filtro").value === "ativos")),
         );
         $("resultados").replaceChildren();
-        $("detalhes").hidden = true;
         MPB.texto("contador", itens.length + " produtos");
         $("vazio").hidden = !!itens.length;
         itens.forEach((p) => {
@@ -38,39 +101,35 @@
                 if (i >= 2 && i < valores.length - 1) td.className = "numerico";
                 tr.append(td);
             });
-            const td = document.createElement("td"),
-                b = document.createElement("button");
-            b.className = "link";
-            b.textContent = "Detalhes";
-            b.setAttribute("aria-label", "Ver detalhes de " + p.nome);
-            b.addEventListener("click", () => {
-                MPB.texto("nome-detalhe", p.nome);
-                $("dados-detalhe").replaceChildren();
-                Object.entries({
-                    Código: p.codigo,
-                    "Código de barras": p.barras,
-                    "Saldo depósito": p.deposito + " UN",
-                    "Saldo gôndola": p.gondola + " UN",
-                    "Saldo total": p.deposito + p.gondola + " UN",
-                    "Última movimentação": "25/09/2026 · 08:30",
-                }).forEach(([k, v]) => {
-                    const div = document.createElement("div"),
-                        dt = document.createElement("dt"),
-                        dd = document.createElement("dd");
-                    dt.textContent = k;
-                    dd.textContent = v;
-                    div.append(dt, dd);
-                    $("dados-detalhe").append(div);
-                });
-                $("detalhes").hidden = false;
-            });
-            td.append(b);
+
+            const td = document.createElement("td");
+            const grupo = document.createElement("div");
+            grupo.className = "acoes-linha";
+            grupo.append(
+                botaoAcao("Detalhes", "link", () => abrirDetalhes(p)),
+                botaoAcao("Editar", "link", () => abrirEditar(p)),
+                botaoAcao("Deletar", "link perigo-link", () => abrirDeletar(p)),
+            );
+            td.append(grupo);
             tr.append(td);
             $("resultados").append(tr);
         });
     }
+
+    $("modal-editar").addEventListener("close", () => {
+        if ($("modal-editar").returnValue === "confirmar") {
+            MPB.aviso("Edição simulada. Nenhum produto foi alterado.");
+        }
+    });
+    $("modal-deletar").addEventListener("close", () => {
+        if ($("modal-deletar").returnValue === "confirmar") {
+            MPB.aviso("Exclusão simulada. Nenhum produto foi removido.");
+        }
+    });
+
     ["busca", "filtro"].forEach((id) =>
         $(id).addEventListener("input", pesquisar),
     );
     pesquisar();
 })();
+
