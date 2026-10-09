@@ -3,11 +3,8 @@
 @section('content')
 <section class="pdv" aria-label="Terminal de caixa">
     <header class="pdv-barra">
-        <strong>PREÇO BOM · PDV</strong
-        ><span
-            >Caixa 01 &nbsp; | &nbsp; Operadora: Mariana Oliveira &nbsp; |
-            &nbsp; 25/09/2026</span
-        >
+        <strong>PREÇO BOM · PDV</strong>
+        <span>Caixa 01 &nbsp; | &nbsp; Operadora: Mariana Oliveira &nbsp; | &nbsp; 25/09/2026</span>
     </header>
     <div id="situacao" class="pdv-situacao">CAIXA ABERTO</div>
     <div class="pdv-corpo">
