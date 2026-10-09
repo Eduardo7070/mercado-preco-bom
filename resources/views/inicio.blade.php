@@ -1,10 +1,16 @@
 @extends('layouts.mercado')
 
 @section('content')
+
+@php
+        $usuario = auth()->user();
+        $partesNome = collect(explode(' ', $usuario?->name ?? 'Usuário'))->filter()->take(2);
+        $iniciais = $partesNome->map(fn ($parte) => mb_strtoupper(mb_substr($parte, 0, 1)))->implode('') ?: 'U';
+@endphp
 <section class="boas-vindas">
     <div>
         <span class="etiqueta">LOJA PRINCIPAL</span>
-        <h2>Bom dia, Mariana.</h2>
+        <h2>Bom dia, {{ $usuario?->name ?? 'Usuário' }}</h2>
         <p>Produtos organizados, estoque em dia e caixa pronto para atender.</p>
     </div>
     <a class="botao" href="{{ route('caixa.finalizar') }}"

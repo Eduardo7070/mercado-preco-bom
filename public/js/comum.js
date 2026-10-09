@@ -112,5 +112,12 @@ window.MPB = {
 };
 // Os formulários são protótipos: não submetem dados ao servidor.
 document.addEventListener("submit", (event) => {
-    if (!event.target.closest("dialog")) event.preventDefault();
+    const form = event.target;
+
+    if (form.closest("dialog") || form.classList.contains("logout-form")) {
+        return;
+    }
+
+    event.preventDefault();
 });
+
