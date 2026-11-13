@@ -81,17 +81,10 @@ window.MPB = {
         el.hidden = false;
         el.classList.toggle("erro", erro);
         el.setAttribute("role", erro ? "alert" : "status");
-        el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        if (erro) MPBAlert.error(texto); else MPBAlert.success(texto);
     },
-    confirmar(titulo, texto, acao) {
-        const dialogo = document.getElementById("confirmacao");
-        this.texto("confirmacao-titulo", titulo);
-        this.texto("confirmacao-texto", texto);
-        dialogo.returnValue = "";
-        dialogo.onclose = () => {
-            if (dialogo.returnValue === "confirmar") acao();
-        };
-        dialogo.showModal();
+    async confirmar(titulo, texto, acao) {
+        if (await MPBAlert.confirm(titulo, texto)) acao();
     },
     preencherProdutos(id) {
         const select = document.getElementById(id);

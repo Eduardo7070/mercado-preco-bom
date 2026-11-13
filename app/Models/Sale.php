@@ -12,7 +12,14 @@ class Sale extends Model
 
     protected function casts(): array
     {
-        return ['total_cents' => 'integer', 'received_cents' => 'integer', 'change_cents' => 'integer', 'simulated' => 'boolean', 'refunded_at' => 'datetime'];
+        return ['returned_cents' => 'integer', 'total_cents' => 'integer', 'received_cents' => 'integer', 'change_cents' => 'integer', 'simulated' => 'boolean', 'refunded_at' => 'datetime'];
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return match ($this->status) {
+            'paid' => 'Paga (simulada)','refunded' => 'Estornada',default => 'Devolução parcial'
+        };
     }
 
     public function items(): HasMany

@@ -9,6 +9,11 @@ class SaleItem extends Model
 {
     protected $guarded = [];
 
+    protected function casts(): array
+    {
+        return ['quantity' => 'float', 'returned_quantity' => 'float', 'returned_cents' => 'integer', 'unit_cost_cents' => 'integer', 'unit_price_cents' => 'integer', 'total_cents' => 'integer'];
+    }
+
     public function sale(): BelongsTo
     {
         return $this->belongsTo(Sale::class);

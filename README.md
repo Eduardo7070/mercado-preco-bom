@@ -1,319 +1,149 @@
 # Mercado Preço Bom
 
-Protótipo acadêmico de um sistema de gestão de supermercado, desenvolvido com **Laravel 13, Blade, CSS e JavaScript puro**.
+Sistema de gestão de supermercado em **Laravel 13, Blade, CSS e JavaScript**, organizado em **Requests → Controllers → Actions**. As views ficam em `resources/views`; os estilos e scripts ficam separados em `public/css` e `public/js`.
 
-O projeto contém uma página inicial e 12 telas dos módulos **Produtos, Estoque e Frente de caixa**. Cada tela apresenta sua história de usuário e seus critérios de aceitação.
+Produtos, estoque, usuários, compras e vendas são gravados no banco. **Os pagamentos continuam simulados: não há cobrança externa nem emissão de documento fiscal.**
 
-As operações usam dados fictícios e simulam validações e confirmações no navegador. **Não há login, gravação de produtos, movimentação real de estoque ou processamento de pagamentos.** Os exemplos são restaurados ao recarregar a página.
+## Requisitos
 
-## Tecnologias e requisitos
+- Windows com WampServer, Apache e MySQL ativos.
+- PHP compatível com o `composer.lock`; o desenvolvimento utiliza PHP 8.5. Confira com `composer check-platform-reqs`.
+- Composer 2, Git e Node.js com npm para instalar dependências e executar testes de JavaScript.
+- Extensões PHP: `pdo_mysql`, `mbstring`, `openssl`, `fileinfo`, `curl`, `dom` e `xml`; `pdo_sqlite` para testes. O Composer informa outras extensões necessárias.
 
-- Windows com [WampServer 64 bits](https://wampserver.aviatechno.net/) instalado e Apache disponível.
-- **PHP 8.5 recomendado**, versão utilizada no desenvolvimento. O `composer.lock` atual contém dependências que exigem **PHP 8.4.1 ou superior**; PHP 8.3 não é suficiente para instalar esse conjunto de dependências.
-- [Composer 2](https://getcomposer.org/download/).
-- [Git para Windows](https://git-scm.com/downloads/win).
-- Navegador atualizado.
+Os comandos abaixo usam **PowerShell**. Confira `php -v`, `php --ini`, `where.exe php`, `composer --version` e `node --version`. O PHP do terminal e o PHP do Apache devem ser compatíveis. **Não precisa de WSL ou Docker.**
 
-O WampServer permite instalar outras versões de PHP por meio dos seus addons oficiais. Selecione uma versão compatível no menu de PHP e, quando houver configuração por VirtualHost, confira também a versão usada pelo site.
-
-**Não é necessário usar Docker, WSL, Node.js ou `npm run dev` para abrir as telas atuais.** O CSS e o JavaScript são servidos diretamente da pasta `public`. Os arquivos do Vite presentes no esqueleto Laravel não fazem parte desse fluxo.
-
-> Os comandos deste guia usam **PowerShell**, inclusive quando executados no terminal integrado do VS Code. Execute os comandos do projeto na pasta que contém o arquivo `artisan`.
-
-## 1. Preparar o PHP e o Composer
-
-Inicie o WampServer e confira se o Apache está funcionando. Se você também utilizar o banco opcional, mantenha o MySQL ativo.
-
-No PowerShell, confira:
+## Instalar em outra máquina
 
 ```powershell
-php -v
-php --ini
-composer --version
-git --version
-where.exe php
-```
-
-O PHP do terminal e o PHP utilizado pelo Apache são configurações distintas. Ambos devem usar uma versão compatível.
-
-Se `php` não for reconhecido ou apontar para uma instalação antiga:
-
-1. Localize a pasta da versão escolhida em `C:\wamp64\bin\php`.
-2. Adicione essa pasta ao `Path` do Windows, antes de outras instalações de PHP. Exemplo de formato: `C:\wamp64\bin\php\php8.5.X` — substitua `X` pela versão realmente instalada.
-3. Feche e reabra o PowerShell e o VS Code.
-4. Execute `php -v` e `where.exe php` novamente.
-
-Durante a instalação do Composer, selecione o `php.exe` dessa versão.
-
-Confira as extensões com `php -m`. O Laravel e suas dependências utilizam, entre outras, `ctype`, `curl`, `dom`, `fileinfo`, `filter`, `hash`, `mbstring`, `openssl`, `pcre`, `PDO`, `session`, `tokenizer` e `xml`. A extensão `zip` facilita a instalação pelo Composer. Para MySQL, habilite também `pdo_mysql`; para executar os testes com SQLite, habilite `pdo_sqlite`.
-
-Extensões já embutidas no PHP podem não aparecer como opções no menu do WampServer. Para as demais, confira as extensões habilitadas e o `php.ini` correto. Reinicie os serviços após alterar a configuração do Apache/PHP.
-
-## 2. Baixar o projeto
-
-Para uma instalação nova:
-
-```powershell
-New-Item -ItemType Directory -Force C:\laravel | Out-Null
 Set-Location C:\laravel
 git clone https://github.com/eduardo7070/mercado-preco-bom.git
 Set-Location C:\laravel\mercado-preco-bom
-```
-
-Se o repositório estiver privado, sua conta do GitHub precisa ter permissão de acesso.
-
-Se você já baixou o projeto, apenas entre na pasta existente. Não clone por cima dela. Outra pasta pode ser utilizada; ajuste os caminhos do restante do guia.
-
-## 3. Instalar as dependências PHP
-
-```powershell
 composer install
 composer check-platform-reqs
+npm ci
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
-Use `composer install` para respeitar as versões do `composer.lock`. Não use `composer update` nem `--ignore-platform-reqs` para contornar incompatibilidades: ajuste o PHP ou as extensões indicadas pelo Composer.
-
-## 4. Criar a configuração local
-
-Crie o `.env` somente se ele ainda não existir:
-
-```powershell
-if (-not (Test-Path .env)) {
-    Copy-Item .env.example .env
-}
-```
-
-Abra o `.env` e **substitua as linhas correspondentes**, sem criar variáveis duplicadas:
+Crie um banco vazio chamado `mercado_preco_bom` no MySQL do WampServer. Edite as linhas correspondentes do `.env`, sem duplicá-las:
 
 ```dotenv
 APP_NAME="Mercado Preço Bom"
 APP_ENV=local
 APP_DEBUG=true
-APP_URL=http://mercado-preco-bom.test
-
+APP_URL=http://127.0.0.1:8000
 APP_LOCALE=pt_BR
 APP_FALLBACK_LOCALE=en
 APP_FAKER_LOCALE=pt_BR
 
-SESSION_DRIVER=file
-CACHE_STORE=file
-QUEUE_CONNECTION=sync
-```
-
-Mantenha as demais linhas do modelo. `APP_DEBUG=true` é uma configuração de desenvolvimento local.
-
-Gere a chave na primeira instalação:
-
-```powershell
-php artisan key:generate
-php artisan config:clear
-```
-
-Não gere uma chave nova a cada execução. O comando grava `APP_KEY` no seu `.env`.
-
-**Para apresentar os protótipos, não é necessário criar banco nem executar migrations.** Com sessões e cache em arquivos, as telas atuais não consultam o banco, mesmo que `DB_CONNECTION=sqlite` continue no `.env`.
-
-O `.env` contém a configuração de cada computador e não deve ser enviado ao GitHub. O `.env.example` deve permanecer no repositório como modelo, sem credenciais reais.
-
-## 5. Configurar o site no Apache do WampServer
-
-Crie um VirtualHost chamado `mercado-preco-bom.test`, apontando para:
-
-```text
-C:/laravel/mercado-preco-bom/public
-```
-
-Você pode usar a opção de adicionar VirtualHost na página inicial do WampServer, acessível em `http://localhost`. Informe o nome do host e o caminho absoluto acima. Se o assistente pedir a versão do PHP, selecione a versão compatível instalada.
-
-A raiz do site deve ser **`public`**, e não a pasta principal do projeto. Essa é a pasta de entrada HTTP do Laravel; não mova o `index.php` para fora dela. Consulte a [orientação oficial do Laravel](https://laravel.com/docs/13.x/deployment).
-
-### Configuração manual, se necessária
-
-Se o assistente não estiver disponível, abra o arquivo `httpd-vhosts.conf` da instalação ativa do Apache. Ele fica na subpasta `conf\extra` da versão instalada em `C:\wamp64\bin\apache`. Preserve os VirtualHosts que já existem e acrescente:
-
-```apache
-<VirtualHost *:80>
-    ServerName mercado-preco-bom.test
-    DocumentRoot "C:/laravel/mercado-preco-bom/public"
-
-    <Directory "C:/laravel/mercado-preco-bom/public">
-        Options -Indexes +FollowSymLinks
-        AllowOverride All
-        Require local
-    </Directory>
-</VirtualHost>
-```
-
-Confira se o Apache carrega `conf/extra/httpd-vhosts.conf` e se o módulo `rewrite_module` está habilitado. O arquivo `public/.htaccess` já faz parte do projeto e encaminha as rotas para o Laravel.
-
-Abra um editor **como administrador** e edite o arquivo:
-
-```text
-C:\Windows\System32\drivers\etc\hosts
-```
-
-Adicione a linha abaixo caso ela ainda não exista:
-
-```text
-127.0.0.1 mercado-preco-bom.test
-```
-
-Não adicione extensão ao arquivo `hosts`. Se utilizou o assistente do WampServer, confira se ele já criou essa entrada para evitar duplicação.
-
-Reinicie os serviços do WampServer. Se precisar atualizar a resolução do nome, execute:
-
-```powershell
-ipconfig /flushdns
-```
-
-## 6. Abrir o sistema
-
-Com o Apache ativo e o VirtualHost configurado:
-
-- **Início:** [http://mercado-preco-bom.test](http://mercado-preco-bom.test)
-- **Frente de caixa:** [http://mercado-preco-bom.test/caixa/finalizar](http://mercado-preco-bom.test/caixa/finalizar)
-
-Nesse modo, o WampServer atende o site. **Não é necessário executar `php artisan serve`, `composer run dev` ou `npm run dev`.**
-
-### Alternativa: servidor do Laravel
-
-Para verificar o projeto antes de configurar o VirtualHost, altere `APP_URL` para `http://127.0.0.1:8000` e execute:
-
-```powershell
-php artisan config:clear
-php artisan serve --host=127.0.0.1 --port=8000
-```
-
-Acesse [http://127.0.0.1:8000](http://127.0.0.1:8000). Mantenha esse terminal aberto e use `Ctrl+C` para parar. Nessa alternativa, quem atende as páginas é o servidor do PHP, não o Apache.
-
-## Banco MySQL do WampServer — opcional
-
-Esta etapa só é necessária se você quiser usar o banco para as tabelas padrão do Laravel. **Ela não adiciona persistência às telas de produtos, estoque ou caixa.**
-
-1. Inicie o MySQL pelo WampServer.
-2. Acesse o phpMyAdmin ou Adminer pelo menu do WampServer e entre com as credenciais da sua instalação.
-3. Crie um banco vazio chamado `mercado_preco_bom`, com codificação `utf8mb4`.
-4. No `.env`, substitua a configuração de banco existente:
-
-```dotenv
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=mercado_preco_bom
-DB_USERNAME=SEU_USUARIO_MYSQL
-DB_PASSWORD="SUA_SENHA_MYSQL"
+DB_USERNAME=root
+DB_PASSWORD=
+
+SESSION_DRIVER=database
+CACHE_STORE=database
+QUEUE_CONNECTION=sync
+MAIL_MAILER=log
 ```
 
-Substitua os valores de exemplo pelas credenciais locais. Confira a porta usada pelo MySQL: ela pode ser diferente de `3306`. Se o seu usuário local realmente não tiver senha, use `DB_PASSWORD=`.
-
-Na pasta do projeto, execute:
+Ajuste usuário, senha e porta para sua instalação. Não use credenciais reais no `.env.example`. O `.env` não deve ir para o Git.
 
 ```powershell
+php artisan key:generate
 php artisan config:clear
 php artisan migrate
+php artisan db:seed
+php artisan storage:link
+php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-As migrations existentes criam as tabelas padrão de usuários, sessões, cache e filas. Para usar sessões e cache no banco, altere `SESSION_DRIVER=database` e `CACHE_STORE=database` **depois** de executar as migrations, e rode `php artisan config:clear` novamente.
+Abra **http://127.0.0.1:8000**. Gere a `APP_KEY` somente na primeira instalação; preserve a chave de instalações existentes.
 
-## Telas disponíveis
+O seeder cria os perfis `admin`, `gerente`, `caixa` e `estoquista`. Para contas novas, mostra uma senha inicial aleatória no terminal, com e-mails como `admin@mercadoprecobom.local`. **Guarde a senha exibida e altere-a em Minha senha.** Rodar os seeders novamente preserva as senhas, as permissões personalizadas e os produtos já editados. O cadastro de usuários é restrito a quem possui `acessos.gerenciar`.
 
-| História | Tela | Caminho |
-| --- | --- | --- |
-| — | Início | `/` |
-| H01.001 | Cadastrar produto | `/produtos/cadastrar` |
-| H01.002 | Editar produto | `/produtos/editar` |
-| H01.003 | Inativar produto | `/produtos/inativar` |
-| H01.004 | Consultar produtos | `/produtos/consultar` |
-| H02.001 | Entrada de mercadoria | `/estoque/entrada` |
-| H02.002 | Saída de mercadoria | `/estoque/saida` |
-| H02.003 | Consultar saldos | `/estoque/consultar` |
-| H02.004 | Ajustar estoque | `/estoque/ajustar` |
-| H03.001 | Finalizar venda / PDV | `/caixa/finalizar` |
-| H03.002 | Cancelar item | `/caixa/cancelar` |
-| H03.003 | Selecionar pagamento | `/caixa/pagamento` |
-| H03.004 | Estornar venda | `/caixa/estornar` |
-
-No caixa, os códigos `1001` e `1002` representam arroz e leite. Use **F2** para focar a leitura de código e **F4** para conferir o pagamento nas telas correspondentes.
-
-## Organização dos arquivos
-
-```text
-resources/views/
-├── layouts/mercado.blade.php  # Layout e carregamento dos arquivos
-├── inicio.blade.php
-├── produtos/                 # HTML Blade e história de cada tela
-├── estoque/
-└── caixa/
-
-public/css/
-├── comum.css                 # Identidade visual compartilhada
-├── inicio.css
-├── produtos/                 # Um CSS por tela
-├── estoque/
-└── caixa/
-
-public/js/
-├── comum.js                  # Dados fictícios e funções compartilhadas
-├── inicio.js
-├── produtos/                 # Um JavaScript por tela
-├── estoque/
-└── caixa/
-
-routes/web.php                # Rotas de apresentação
-```
-
-Por exemplo, a tela de estorno utiliza:
-
-- `resources/views/caixa/estornar.blade.php`;
-- `public/css/caixa/estornar.css`;
-- `public/js/caixa/estornar.js`;
-- o layout e os arquivos `comum.css` e `comum.js` compartilhados.
-
-## Verificação
+`DatabaseSeeder` inclui produtos e saldos de demonstração. Para preparar apenas perfis, permissões, categorias e terminais, sem inserir mercadorias de exemplo:
 
 ```powershell
-composer check-platform-reqs
-php artisan route:list --except-vendor
-php artisan view:cache
-php artisan test --compact
+php artisan db:seed --class=AccessControlSeeder
+php artisan db:seed --class=OperationsSeeder
 ```
 
-`view:cache` verifica a compilação Blade. Os testes PHP atuais verificam o funcionamento básico da aplicação; não substituem a conferência das interações no navegador. Existe também um teste de interface em `tests/ui/prototipos.cjs`, que usa Playwright e depende de configuração própria do navegador e da URL local.
+Os arquivos de interface são servidos diretamente de `public`; **não precisa manter `npm run dev` aberto**. SweetAlert2 está versionado em `public/vendor/sweetalert2`. Vite permanece disponível para os recursos do esqueleto Laravel.
 
-## Problemas frequentes
+## Usar o Apache do WampServer
 
-| Problema | O que conferir |
-| --- | --- |
-| PHP incompatível no Composer | Execute `php -v` e `where.exe php`. Use PHP 8.4.1 ou superior para o lock atual; PHP 8.5 é recomendado. |
-| `php` ou `composer` não reconhecido | Instale a ferramenta, ajuste o `Path` e reabra o terminal/VS Code. |
-| Extensão PHP ausente | Confira `php --ini` e `php -m`; habilite a extensão solicitada no PHP do terminal e, quando aplicável, no Apache. |
-| `vendor/autoload.php` não encontrado | Execute `composer install` na pasta do projeto. |
-| Chave de aplicação ausente | Crie o `.env` e execute `php artisan key:generate` na primeira instalação. |
-| Erro de SQLite ou tabela `sessions` inexistente | No modo protótipo, use `SESSION_DRIVER=file`, `CACHE_STORE=file` e `QUEUE_CONNECTION=sync`; depois execute `php artisan config:clear`. |
-| `could not find driver` ao usar MySQL | Habilite `pdo_mysql` no PHP correto e reinicie os serviços. |
-| Conexão MySQL recusada | Confira serviço, porta, banco e credenciais do `.env`. |
-| Domínio local não encontrado | Confira a entrada no arquivo `hosts` e reinicie os serviços. |
-| Erro 403 ou listagem de diretório | Confira o VirtualHost, o caminho terminado em `public`, as permissões e a configuração de acesso local. |
-| Início abre, mas outras rotas dão 404 | Confira `rewrite_module`, `AllowOverride All` e o arquivo `public/.htaccess`. |
-| CSS ou JavaScript não carregam | Confira o DocumentRoot em `public`, a aba Rede do navegador e recarregue com `Ctrl+F5`. As telas atuais não precisam de build Vite. |
-| Erro 500 | Consulte `storage/logs/laravel.log`, os requisitos de plataforma e as permissões de escrita em `storage` e `bootstrap/cache`. |
-| Apache não inicia | Confira os logs do WampServer e se outro programa ocupa a porta 80. Se usar outra porta, ajuste o VirtualHost, a URL e `APP_URL`. |
+Crie um VirtualHost `mercado-preco-bom.test` apontando para **`C:/laravel/mercado-preco-bom/public`**. Habilite `mod_rewrite` e `AllowOverride All` para que o `.htaccess` do Laravel funcione. Reinicie os serviços, ajuste `APP_URL=http://mercado-preco-bom.test` e execute `php artisan config:clear`.
+
+A raiz pública deve ser `public`, para que `.env`, código PHP e backups permaneçam fora do acesso web. Se a criação do link `public/storage` falhar no Windows, habilite o Modo de Desenvolvedor ou execute `php artisan storage:link` em um terminal com a permissão necessária. As imagens de marca ficam em `storage/app/public`.
 
 ## Atualizar uma instalação existente
 
-Com suas alterações locais já salvas em commit ou separadas antes da atualização:
+Faça backup do banco e preserve seu `.env` e sua `APP_KEY`. Atualize o código e execute:
 
 ```powershell
-git pull
 composer install
-php artisan config:clear
-php artisan view:clear
+npm ci
+php artisan migrate
+php artisan db:seed --class=OperationsSeeder
+php artisan optimize:clear
 ```
 
-Preserve seu `.env` e sua `APP_KEY`. Se estiver usando o banco opcional e houver novas migrations, execute `php artisan migrate`.
+**Não use `migrate:fresh`, `db:wipe` ou `migrate:refresh` na base de trabalho: esses comandos apagam dados.** A migration operacional preserva os saldos e o histórico. Ela recusa identificadores ambíguos entre código interno e código de barras; corrija esses registros antes de migrar.
 
-## Referências
+Saldos antigos de produtos com controle de validade entram como lotes `LEGADO-*` **pendentes de conferência**. Em **Estoque → Lotes e validade**, informe o lote e a validade reais e retire o bloqueio somente após conferir a mercadoria. Produtos vencidos ou bloqueados não podem ser vendidos; transferências desses lotes também são recusadas. Não se atribui uma validade fictícia a mercadorias existentes.
 
-- [WampServer: instaladores e addons oficiais](https://wampserver.aviatechno.net/)
-- [Laravel: configuração do servidor e pasta pública](https://laravel.com/docs/13.x/deployment)
-- [Composer: instalação no Windows](https://getcomposer.org/doc/00-intro.md#installation-windows)
+A migration operacional não faz rollback destrutivo de histórico; uma reversão dessa atualização exige restauração do backup correspondente.
+
+## Fluxos disponíveis
+
+- **Produtos:** cadastrar, pesquisar enquanto digita, consultar em modal, editar, ativar/inativar e excluir cadastros sem histórico. Código e código de barras não podem identificar produtos diferentes.
+- **Estoque:** entrada, saída, contagem, ajuste, transferência depósito/gôndola, lotes, validade e histórico com responsável e justificativa. `KG` e `L` aceitam até três casas decimais; `UN` e `CX` exigem inteiros.
+- **Caixa:** abra uma sessão escolhendo terminal e fundo inicial. Registre vendas; dinheiro calcula troco e as demais formas exigem confirmação simulada. Há suprimento, sangria, fechamento com conferência e justificativa de diferença. Um terminal não pode ser aberto por dois operadores.
+- **Atendimento:** o carrinho é recuperado no mesmo navegador após recarregar. Vendas suspensas são guardadas no banco e podem ser retomadas pelo operador. Suspender não reserva estoque nem congela preços.
+- **Vendas:** histórico, filtros, recibos, estorno integral e devolução parcial. A devolução distingue reposição de mercadoria e descarte por avaria, mantém rastreabilidade e evita devolver acima da quantidade vendida. Reembolsos em dinheiro exigem saldo na gaveta.
+- **Cadastros:** categorias, clientes, fornecedores e terminais. Registros usados no histórico não podem ser apagados.
+- **Compras:** recebimento com fornecedor, documento, quantidades, custo, lote e validade; entrada no depósito e atualização do custo médio. Documento repetido do mesmo fornecedor é recusado.
+- **Relatórios:** valores brutos, devolvidos e líquidos, custo e margem estimada; filtro por data da venda e exportação CSV. Avarias continuam no custo. Vendas antigas sem custo registrado são identificadas como incompletas para cálculo de margem.
+- **Usuários:** criação, edição, perfil, bloqueio e troca de senha. Bloqueios interrompem o acesso. Administradores não podem bloquear a si mesmos ou retirar o próprio perfil pela edição da conta.
+- **Permissões:** verificadas no servidor e refletidas nos menus. Caixa consulta suas vendas; admin e gerente têm visão global. Alterações por perfil continuam configuráveis na tela de permissões.
+
+As operações críticas usam transações e bloqueios de registros. Reenvios com a mesma chave de operação são aceitos apenas se o conteúdo for o mesmo. Alterações em produtos e saldos verificam a versão recebida, para evitar sobrescrever dados antigos.
+
+## Recuperação de senha
+
+O login oferece **Esqueci minha senha**. O Laravel gera um token com expiração e uso único. Com `MAIL_MAILER=log`, a mensagem fica em `storage/logs/laravel.log`; não é enviada para uma caixa de e-mail.
+
+Para envio real, configure seu serviço SMTP no `.env` (`MAIL_MAILER=smtp`, host, porta, credenciais, remetente e esquema compatível com o provedor) e rode `php artisan config:clear`. Use uma `APP_URL` acessível ao destinatário. A entrega depende de um serviço de e-mail configurado.
+
+## Testes
+
+A suíte PHP utiliza SQLite em memória, separado do MySQL da aplicação:
+
+```powershell
+php -d extension=pdo_sqlite vendor/bin/phpunit
+npm run test:alerts
+```
+
+Se `pdo_sqlite` já estiver habilitado no `php.ini`, use `php vendor/bin/phpunit` para evitar carregá-lo duas vezes.
+
+Os testes de interface criam seu próprio banco SQLite temporário, credenciais aleatórias e servidor em `127.0.0.1:8097`; não gravam no banco da aplicação:
+
+```powershell
+# Com Google Chrome já instalado:
+$env:MPB_UI_CHANNEL="chrome"
+npm run test:ui
+
+# Ou com o Chromium do Playwright:
+npx playwright install chromium
+Remove-Item Env:MPB_UI_CHANNEL -ErrorAction SilentlyContinue
+npm run test:ui
+```
+
+Mude `MPB_UI_PORT` se a porta estiver ocupada. Prints de verificação ficam em `test-results/review` (ignorado pelo Git). `BrowserTestSeeder` recusa execução fora do banco temporário de testes.
+
+## Limites atuais
+
+Pagamentos e recibos são demonstrativos, sem integração com adquirentes, Pix bancário, NFC-e/SAT ou emissão fiscal. O sistema não substitui a homologação fiscal e financeira de um PDV comercial. A margem é estimada e não inclui tributos ou despesas operacionais.

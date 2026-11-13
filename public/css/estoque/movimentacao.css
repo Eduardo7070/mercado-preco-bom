@@ -1,0 +1,32 @@
+.produto-combobox { position: relative; }
+.produto-opcoes {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 30;
+    max-height: 280px;
+    overflow-y: auto;
+    border: 1px solid #bacfc0;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 8px 20px #183c2620;
+}
+.produto-opcao {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    padding: 12px 14px;
+    border: 0;
+    border-bottom: 1px solid #e4ebe5;
+    text-align: left;
+    font: inherit;
+    color: #253c30;
+    background: #fff;
+    cursor: pointer;
+}
+.produto-opcao:last-child { border-bottom: 0; }
+.produto-opcao:hover, .produto-opcao-ativa { background: #eaf3ec; }
+.produto-opcao small, .produto-busca-status { font-size: 12px; font-weight: normal; color: #617667; }
+.produto-busca-status { line-height: 1.5; }

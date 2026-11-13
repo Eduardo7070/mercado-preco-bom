@@ -43,6 +43,6 @@
             <button class="auth-button" type="submit">Entrar</button>
         </form>
 
-        <p class="auth-link">Ainda não tem conta? <a href="{{ route('register') }}">Criar usuário</a></p>
+        <p class="auth-link"><a href="{{ route('password.request') }}">Esqueci minha senha</a></p>
     </div>
 @endsection

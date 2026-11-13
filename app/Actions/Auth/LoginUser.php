@@ -15,9 +15,9 @@ class LoginUser
         if (RateLimiter::tooManyAttempts($key, 5)) {
             throw ValidationException::withMessages(['email' => 'Muitas tentativas. Aguarde um minuto.']);
         }
-        if (! Auth::attempt($request->safe()->only(['email', 'password']), $request->boolean('remember'))) {
+        if (! Auth::attempt(array_merge($request->safe()->only(['email', 'password']), ['active' => true]), $request->boolean('remember'))) {
             RateLimiter::hit($key, 60);
-            throw ValidationException::withMessages(['email' => 'E-mail ou senha inválidos.']);
+            throw ValidationException::withMessages(['email' => 'E-mail ou senha inválidos ou conta bloqueada.']);
         }
         RateLimiter::clear($key);
         $request->session()->regenerate();

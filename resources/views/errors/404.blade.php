@@ -1,0 +1,1 @@
+@include('errors.alert', ['code' => 404, 'heading' => 'Página ou registro não encontrado', 'description' => 'O endereço pode ter mudado ou o registro não está mais disponível. Volte à consulta.'])

@@ -14,6 +14,6 @@ class SaleSearchRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['q' => ['nullable', 'string', 'max:191'], 'from' => ['nullable', 'date'], 'to' => ['nullable', 'date', 'after_or_equal:from'], 'status' => ['nullable', Rule::in(['paid', 'refunded'])], 'page' => ['sometimes', 'integer', 'min:1']];
+        return ['q' => ['nullable', 'string', 'max:191'], 'from' => ['nullable', 'date'], 'to' => ['nullable', 'date', 'after_or_equal:from'], 'status' => ['nullable', Rule::in(['paid', 'refunded', 'partially_refunded'])], 'page' => ['sometimes', 'integer', 'min:1']];
     }
 }

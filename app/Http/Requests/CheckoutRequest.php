@@ -15,13 +15,13 @@ class CheckoutRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'operation_id' => ['required', 'uuid'], 'customer_name' => ['nullable', 'string', 'max:191'],
+            'cash_session_id' => ['required', 'integer', 'exists:cash_sessions,id'], 'customer_id' => ['nullable', 'integer', 'exists:customers,id'], 'draft_id' => ['nullable', 'integer', 'exists:sale_drafts,id'], 'operation_id' => ['required', 'uuid'], 'customer_name' => ['nullable', 'string', 'max:191'],
             'payment_method' => ['required', Rule::in(['Dinheiro', 'Pix', 'Débito', 'Crédito'])],
             'approved' => ['accepted_if:payment_method,Pix,Débito,Crédito'],
             'received' => ['nullable', Rule::requiredIf($this->input('payment_method') === 'Dinheiro'), 'numeric', 'min:0', 'max:99999999.99', 'decimal:0,2'],
             'items' => ['required', 'array', 'min:1', 'max:100'],
             'items.*.product_id' => ['required', 'integer', 'distinct', 'exists:products,id'],
-            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:100000'],
+            'items.*.quantity' => ['required', 'numeric', 'decimal:0,3', 'min:0.001', 'max:100000'],
         ];
     }
 

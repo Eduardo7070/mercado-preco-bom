@@ -23,7 +23,7 @@ class AuthController extends Controller
     {
         $action->execute($request);
 
-        return redirect()->intended(route('inicio'));
+        return redirect()->intended(route('inicio'))->with('status', 'Login realizado com sucesso.');
     }
 
     public function showRegister(): View
@@ -36,7 +36,7 @@ class AuthController extends Controller
         Auth::login($action->execute($request->validated()));
         $request->session()->regenerate();
 
-        return redirect()->route('inicio');
+        return redirect()->route('inicio')->with('status', 'Conta criada com sucesso.');
     }
 
     public function logout(Request $request, LogoutUser $action): RedirectResponse

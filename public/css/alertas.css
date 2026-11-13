@@ -1,0 +1,10 @@
+.mpb-swal {font-family:Arial,Helvetica,sans-serif;border-radius:12px!important;}
+.mpb-swal .swal2-title {font-size:22px;}
+.mpb-swal .swal2-html-container {font-size:14px;line-height:1.6;white-space:pre-line;overflow-wrap:anywhere;}
+.mpb-swal .swal2-actions {gap:10px;}
+.mpb-swal button {font:inherit;font-size:13px;border-radius:6px!important;}
+.mpb-swal button:focus-visible {outline:3px solid #dfa92c;outline-offset:3px;}
+.swal2-container {z-index:100000!important;}
+dialog .swal2-container {position:fixed;}
+@media(prefers-reduced-motion:reduce){.swal2-popup,.swal2-backdrop-show {animation:none!important;transition:none!important;}}
+@media print {.swal2-container {display:none!important;}}

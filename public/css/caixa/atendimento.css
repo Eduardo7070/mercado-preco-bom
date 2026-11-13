@@ -1,0 +1,31 @@
+.atendimento-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); align-items: start; gap: 20px; }
+.atendimento-grid > .painel { margin-top: 0; min-width: 0; }
+.atendimento-form { display: flex; flex-direction: column; gap: 18px; }
+.atendimento-form .campo { margin: 0; }
+.atendimento-acoes { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; }
+.atendimento-total { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px; border-top: 1px solid #d8e3dc; background: #f3f7f3; }
+.atendimento-total strong { display: inline-block; margin-left: 12px; font-size: 28px; color: #145b3d; font-variant-numeric: tabular-nums; }
+.cupom-tabela { min-width: 500px; }
+.cupom-tabela td:first-child { min-width: 180px; }
+.pagamento-grid { grid-template-columns: minmax(0, 1fr) 360px; }
+.pagamento-troco { display: flex; justify-content: space-between; padding: 14px; background: #f3f7f3; border-radius: 4px; font-size: 16px; }
+.atendimento-form details .atendimento-form, .atendimento-espera .atendimento-form { margin-top: 16px; }
+.estorno-resumo { padding: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; background: #f3f7f3; }
+.estorno-resumo p { margin: 4px 0; }
+.estorno-resumo strong { color: #145b3d; font-size: 24px; }
+.estorno-form { max-width: 100%; }
+.estorno-form .campo { max-width: 600px; }
+.estorno-quantidade { width: 130px; }
+.painel-titulo > .atendimento-acoes { padding: 0; }
+@media(max-width: 850px) { .atendimento-grid, .pagamento-grid { grid-template-columns: minmax(0, 1fr); } }
+@media(max-width: 640px) { .atendimento-total { padding: 16px; flex-wrap: wrap; } .atendimento-total strong { font-size: 24px; } .atendimento-acoes > .botao { flex: 1; text-align: center; justify-content: center; } }
+.estorno-quantidade {
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid #bdcbbf;
+    border-radius: 3px;
+    font: inherit;
+    color: #253c30;
+    background: #fff;
+}
+.estorno-quantidade[readonly] { background: #f3f6f3; color: #5c6f62; }

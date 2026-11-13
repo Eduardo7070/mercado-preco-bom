@@ -1,0 +1,16 @@
+@extends('layouts.mercado')
+@section('content')
+@include('partials.form-feedback')
+<section class="painel"><div class="painel-titulo"><h2>Registrar recebimento</h2><a href="{{ route('cadastros.index','fornecedores') }}">Fornecedores</a></div>
+<form class="painel-corpo" method="POST" action="{{ route('compras.store') }}" data-server-form>@csrf
+<input type="hidden" name="operation_id" value="{{ old('operation_id',(string)\Illuminate\Support\Str::uuid()) }}">
+<div class="campos"><label class="campo">Fornecedor *<select name="supplier_id" required><option value="">Selecione</option>@foreach($suppliers as $supplier)<option value="{{ $supplier->id }}" @selected(old('supplier_id')==$supplier->id)>{{ $supplier->name }}</option>@endforeach</select></label>
+<label class="campo">Documento de origem<input name="document" maxlength="191" value="{{ old('document') }}"></label></div>
+<p class="ajuda">Os itens entram no depósito. Informe até 10 produtos por recebimento. Lote e validade são obrigatórios para produtos controlados.</p>
+<div class="tabela-scroll"><table><thead><tr><th>Produto</th><th>Quantidade</th><th>Custo unitário R$</th><th>Lote</th><th>Validade</th></tr></thead><tbody>
+@for($i=0;$i<10;$i++)<tr><td><select name="items[{{ $i }}][product_id]"><option value="">Selecione</option>@foreach($products as $product)<option value="{{ $product->id }}" @selected(old("items.$i.product_id")==$product->id)>{{ $product->nome }} ({{ $product->unidade }})</option>@endforeach</select></td><td><input name="items[{{ $i }}][quantity]" type="number" min="0" step="0.001" value="{{ old("items.$i.quantity") }}"></td><td><input name="items[{{ $i }}][unit_cost]" type="number" min="0.01" step="0.01" value="{{ old("items.$i.unit_cost") }}"></td><td><input name="items[{{ $i }}][lot]" value="{{ old("items.$i.lot") }}"></td><td><input name="items[{{ $i }}][expires_on]" type="date" value="{{ old("items.$i.expires_on") }}"></td></tr>@endfor
+</tbody></table></div><div class="acoes"><button class="botao">Receber compra e atualizar estoque</button></div></form></section>
+<section class="painel"><div class="painel-titulo"><h2>Compras recebidas</h2></div><div class="tabela-scroll"><table><thead><tr><th>Compra</th><th>Fornecedor</th><th>Documento</th><th>Quando</th><th>Valor</th><th>Itens</th></tr></thead><tbody>
+@forelse($purchases as $purchase)<tr><td>#{{ $purchase->id }}</td><td>{{ $purchase->supplier?->name }}</td><td>{{ $purchase->document??'—' }}</td><td>{{ $purchase->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td><td>R$ {{ number_format($purchase->total_cents/100,2,',','.') }}</td><td><details><summary>Ver itens</summary>@foreach($purchase->items as $item)<p>{{ $item['product_name'] }} · {{ $item['quantity'] }} · R$ {{ number_format($item['line_cents']/100,2,',','.') }}</p>@endforeach</details></td></tr>@empty<tr><td colspan="6">Nenhuma compra recebida.</td></tr>@endforelse
+</tbody></table></div><div class="painel-corpo">{{ $purchases->links() }}</div></section>
+@endsection

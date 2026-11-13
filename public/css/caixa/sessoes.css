@@ -1,0 +1,16 @@
+@import url("./atendimento.css");
+.saldo-caixa { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+.saldo-caixa span { display: block; color: #607367; font-size: 13px; }
+.saldo-caixa strong { display: block; margin-top: 8px; color: #145b3d; font-size: 30px; font-variant-numeric: tabular-nums; }
+.saldo-caixa .ajuda { max-width: 540px; margin: 0; }
+.sessoes-paineis { display: grid; gap: 32px; margin-top: 28px; }
+.sessoes-paineis > .painel { margin: 0; }
+.sessoes-paineis .painel-titulo { padding-top: 20px; padding-bottom: 20px; }
+.fechamento-caixa { border-top: 3px solid #a45f35; }
+.fechamento-caixa .painel-titulo { background: #fcf8f3; }
+.fechamento-instrucao { margin: 0; line-height: 1.6; color: #55675b; }
+.sessoes-historico { margin-top: 28px; }
+.sessoes-historico details form { display: flex; flex-direction: column; gap: 14px; margin: 16px 0 0; }
+@media(max-width: 640px) { .sessoes-paineis { gap: 24px; } .saldo-caixa { align-items: flex-start; } }
+.sessoes-paineis .campos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media(max-width: 640px) { .sessoes-paineis .campos { grid-template-columns: minmax(0, 1fr); } }

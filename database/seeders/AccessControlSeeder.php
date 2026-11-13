@@ -14,7 +14,7 @@ class AccessControlSeeder extends Seeder
     public function run(): void
     {
         DB::transaction(function () {
-            $all = ['inicio', 'produtos.cadastrar', 'produtos.editar', 'produtos.inativar', 'produtos.consultar', 'estoque.entrada', 'estoque.saida', 'estoque.consultar', 'estoque.ajustar', 'caixa.finalizar', 'caixa.cancelar', 'caixa.pagamento', 'caixa.estornar', 'acessos.gerenciar'];
+            $all = ['inicio', 'produtos.cadastrar', 'produtos.excluir', 'produtos.editar', 'produtos.inativar', 'produtos.consultar', 'estoque.entrada', 'estoque.saida', 'estoque.consultar', 'estoque.ajustar', 'caixa.finalizar', 'caixa.cancelar', 'caixa.pagamento', 'caixa.estornar', 'acessos.gerenciar'];
             foreach ($all as $slug) {
                 Permission::firstOrCreate(['slug' => $slug], ['name' => ucfirst(str_replace('.', ' / ', $slug))]);
             }
