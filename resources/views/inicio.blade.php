@@ -13,9 +13,9 @@
         <h2>Bom dia, {{ $usuario?->name ?? 'Usuário' }}</h2>
         <p>Produtos organizados, estoque em dia e caixa pronto para atender.</p>
     </div>
-    <a class="botao" href="{{ route('caixa.finalizar') }}"
+    @can('caixa.finalizar')<a class="botao" href="{{ route('caixa.finalizar') }}"
         >Abrir frente de caixa <span aria-hidden="true">→</span></a
-    >
+    >@endcan
 </section>
 <div class="indicadores">
     <div>
@@ -43,15 +43,18 @@
         </div>
         <div class="painel-corpo">
             <p>Cadastro, preços e situação dos produtos.</p>
-            <a href="{{ route('produtos.cadastrar') }}"
+            @can('produtos.cadastrar')<a href="{{ route('produtos.cadastrar') }}"
                 >Cadastrar produto <span>H01.001 →</span></a
-            ><a href="{{ route('produtos.editar') }}"
+            >@endcan
+            @can('produtos.editar')<a href="{{ route('produtos.editar') }}"
                 >Editar produto <span>H01.002 →</span></a
-            ><a href="{{ route('produtos.inativar') }}"
+            >@endcan
+            @can('produtos.inativar')<a href="{{ route('produtos.inativar') }}"
                 >Inativar produto <span>H01.003 →</span></a
-            ><a href="{{ route('produtos.consultar') }}"
+            >@endcan
+            @can('produtos.consultar')<a href="{{ route('produtos.consultar') }}"
                 >Consultar produtos <span>H01.004 →</span></a
-            >
+            >@endcan
         </div>
     </section>
     <section class="painel">
@@ -61,15 +64,18 @@
         </div>
         <div class="painel-corpo">
             <p>Controle de entradas, saídas e saldos.</p>
-            <a href="{{ route('estoque.entrada') }}"
+            @can('estoque.entrada')<a href="{{ route('estoque.entrada') }}"
                 >Entrada de mercadoria <span>H02.001 →</span></a
-            ><a href="{{ route('estoque.saida') }}"
+            >@endcan
+            @can('estoque.saida')<a href="{{ route('estoque.saida') }}"
                 >Saída de mercadoria <span>H02.002 →</span></a
-            ><a href="{{ route('estoque.consultar') }}"
+            >@endcan
+            @can('estoque.consultar')<a href="{{ route('estoque.consultar') }}"
                 >Consultar saldos <span>H02.003 →</span></a
-            ><a href="{{ route('estoque.ajustar') }}"
+            >@endcan
+            @can('estoque.ajustar')<a href="{{ route('estoque.ajustar') }}"
                 >Ajustar estoque <span>H02.004 →</span></a
-            >
+            >@endcan
         </div>
     </section>
     <section class="painel">
@@ -79,15 +85,18 @@
         </div>
         <div class="painel-corpo">
             <p>Venda, recebimento e conferência do cupom.</p>
-            <a href="{{ route('caixa.finalizar') }}"
+            @can('caixa.finalizar')<a href="{{ route('caixa.finalizar') }}"
                 >Finalizar venda / PDV <span>H03.001 →</span></a
-            ><a href="{{ route('caixa.cancelar') }}"
+            >@endcan
+            @can('caixa.cancelar')<a href="{{ route('caixa.cancelar') }}"
                 >Cancelar item <span>H03.002 →</span></a
-            ><a href="{{ route('caixa.pagamento') }}"
+            >@endcan
+            @can('caixa.pagamento')<a href="{{ route('caixa.pagamento') }}"
                 >Selecionar pagamento <span>H03.003 →</span></a
-            ><a href="{{ route('caixa.estornar') }}"
+            >@endcan
+            @can('caixa.estornar')<a href="{{ route('caixa.estornar') }}"
                 >Estornar venda <span>H03.004 →</span></a
-            >
+            >@endcan
         </div>
     </section>
 </div>

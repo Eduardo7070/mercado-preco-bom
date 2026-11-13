@@ -7,7 +7,10 @@
             <h2>Dados do produto</h2>
             <span class="etiqueta">Cadastro de produtos</span>
         </div>
-        <form id="formulario" class="painel-corpo">
+        <form id="formulario" class="painel-corpo" method="POST" action="{{ route('produtos.store') }}" data-server-form>
+            @csrf
+            @if(session('status'))<p class="aviso" role="status">{{ session('status') }}</p>@endif
+            @if($errors->any())<div class="aviso erro" role="alert"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
             <p class="ajuda">
                 Informe código interno ou código de barras. Campos com * são
                 obrigatórios.
@@ -15,52 +18,52 @@
             <div class="campos">
                 <label class="campo"
                     >Código interno<input
-                        id="codigo"
+                        id="codigo" name="codigo" value="{{ old('codigo') }}"
                         type="text"
                         placeholder="Ex.: 1006" /></label
                 ><label class="campo"
                     >Código de barras<input
-                        id="barras"
+                        id="barras" name="barras" value="{{ old('barras') }}"
                         type="text"
                         inputmode="numeric"
                         placeholder="Leia ou digite o código" /></label
                 ><label class="campo inteiro"
                     >Descrição *<input
-                        id="nome"
+                        id="nome" name="nome" value="{{ old('nome') }}"
                         required
                         placeholder="Nome e apresentação do produto" /></label
                 ><label class="campo"
-                    >Categoria *<select id="categoria" required>
+                    >Categoria *<select id="categoria" name="categoria" required>
                         <option value="">Selecione</option>
-                        <option>Mercearia</option>
-                        <option>Laticínios</option>
-                        <option>Limpeza</option>
-                        <option>Hortifruti</option>
-                        <option>Bebidas</option>
+                        <option @selected(old('categoria') === 'Mercearia')>Mercearia</option>
+                        <option @selected(old('categoria') === 'Laticínios')>Laticínios</option>
+                        <option @selected(old('categoria') === 'Limpeza')>Limpeza</option>
+                        <option @selected(old('categoria') === 'Hortifruti')>Hortifruti</option>
+                        <option @selected(old('categoria') === 'Bebidas')>Bebidas</option>
                     </select></label
                 ><label class="campo"
-                    >Unidade *<select id="unidade">
-                        <option>UN</option>
-                        <option>KG</option>
-                        <option>L</option>
-                        <option>CX</option>
+                    >Unidade *<select id="unidade" name="unidade">
+                        <option @selected(old('unidade') === 'UN')>UN</option>
+                        <option @selected(old('unidade') === 'KG')>KG</option>
+                        <option @selected(old('unidade') === 'L')>L</option>
+                        <option @selected(old('unidade') === 'CX')>CX</option>
                     </select></label
                 ><label class="campo"
                     >Preço de venda (R$) *<input
-                        id="preco"
+                        id="preco" name="preco" value="{{ old('preco') }}"
                         type="number"
                         required
                         min="0.01"
                         step="0.01" /></label
                 ><label class="check"
-                    ><input id="validade" type="checkbox" /> Controlar lote e
+                    ><input id="validade" name="validade" type="checkbox" value="1" @checked(old('validade')) /> Controlar lote e
                     validade</label
                 >
             </div>
             <div class="acoes">
                 <button id="limpar" type="button" class="botao secundario">
                     Limpar campos</button
-                ><button class="botao">Revisar cadastro</button>
+                ><button class="botao">Cadastrar produto</button>
             </div>
         </form>
     </section>
@@ -78,11 +81,11 @@
                 </div>
                 <div>
                     <dt>Responsável</dt>
-                    <dd>Mariana Oliveira</dd>
+                    <dd>{{ auth()->user()->name }}</dd>
                 </div>
                 <div>
-                    <dt>Data de exemplo</dt>
-                    <dd>25/09/2026 · 09:30</dd>
+                    <dt>Data atual</dt>
+                    <dd>{{ now()->format('d/m/Y H:i') }}</dd>
                 </div>
             </dl>
             <p class="ajuda">
@@ -105,6 +108,6 @@
     <li>O produto cadastrado deve iniciar ativo e com saldo de estoque igual a zero.</li>
     <li>Validar os campos obrigatórios e impedir identificadores duplicados.</li>
 </ul>
-<p class="historia-limite">Neste protótipo, as operações são apenas simuladas. Não há gravação de dados, cobrança ou movimentação real de estoque.</p>
+<p class="historia-limite">O cadastro é gravado no banco de dados. O estoque inicial é zero.</p>
 </details>
 @endsection

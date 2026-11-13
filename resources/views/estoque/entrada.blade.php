@@ -1,53 +1,63 @@
 @extends('layouts.mercado')
 
 @section('content')
+<script type="application/json" id="produtos-estoque">@json($products)</script>
 <div class="colunas movimentacao">
     <section class="painel">
         <div class="painel-titulo"><h2>Recebimento de mercadoria</h2></div>
-        <form id="formulario" class="painel-corpo">
+        <form id="formulario" class="painel-corpo" method="POST" action="{{ route('estoque.store', ['operation' => 'entrada']) }}" data-server-form>
+            @csrf
+            <input type="hidden" name="operation_id" value="{{ old('operation_id', (string) \Illuminate\Support\Str::uuid()) }}">
+            @if(session('status'))<p class="aviso" role="status">{{ session('status') }}</p>@endif
+            @if($errors->any())<div class="aviso erro" role="alert"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
             <div class="campos">
                 <label class="campo inteiro"
-                    >Produto *<select id="produto"></select></label
+                    >Produto *<select id="produto" name="product_id" required>
+<option value="">Selecione um produto</option>
+@foreach($products as $product)
+<option value="{{ $product->id }}" @selected(old('product_id') == $product->id)>{{ $product->codigo ?? $product->barras }} — {{ $product->nome }}</option>
+@endforeach
+</select></label
                 ><label class="campo"
-                    >Local do estoque<select id="local">
-                        <option value="deposito">Depósito</option>
-                        <option value="gondola">Gôndola</option>
+                    >Local do estoque<select id="local" name="local">
+                        <option value="deposito" @selected(old('local') === 'deposito')>Depósito</option>
+                        <option value="gondola" @selected(old('local') === 'gondola')>Gôndola</option>
                     </select></label
                 ><label class="campo"
                     >Quantidade *<input
-                        id="quantidade"
+                        id="quantidade" name="quantidade"
                         type="number"
                         required
                         min="1"
                         step="1"
-                        value="10" /></label
+                        value="{{ old('quantidade', 1) }}" /></label
                 ><label class="campo"
                     >Documento de origem<input
-                        id="documento"
+                        id="documento" name="documento" value="{{ old('documento') }}"
                         type="text"
                         placeholder="Ex.: NF 012345"
                 /></label>
                 <div id="controle-lote" class="campos inteiro">
                     <label class="campo"
                         >Lote *<input
-                            id="lote"
+                            id="lote" name="lote" value="{{ old('lote') }}"
                             type="text"
                             required
                             placeholder="Ex.: LT-0926" /></label
                     ><label class="campo"
-                        >Validade *<input id="validade" type="date" required
+                        >Validade *<input id="validade" name="validade" value="{{ old('validade') }}" type="date" required
                     /></label>
                 </div>
             </div>
             <div class="acoes">
-                <button class="botao">Revisar entrada</button>
+                <button class="botao">Registrar entrada</button>
             </div>
         </form>
     </section>
     <aside class="painel">
         <div class="painel-titulo">
             <h2>Prévia do saldo</h2>
-            <span class="etiqueta">Simulação</span>
+            <span class="etiqueta">Conferência</span>
         </div>
         <div class="painel-corpo">
             <span class="legenda">Saldo após a operação</span
@@ -63,12 +73,11 @@
                 </div>
                 <div>
                     <dt>Responsável</dt>
-                    <dd>Mariana Oliveira</dd>
+                    <dd>{{ auth()->user()->name }}</dd>
                 </div>
             </dl>
             <p class="ajuda">
-                O saldo é calculado para conferência. Nenhuma movimentação será
-                registrada.
+                O saldo é calculado para conferência e atualizado após registrar.
             </p>
         </div>
     </aside>
@@ -86,6 +95,6 @@
     <li>Apresentar o saldo anterior e o saldo previsto após a entrada.</li>
     <li>Identificar responsável, data e hora e evitar o registro duplicado da operação.</li>
 </ul>
-<p class="historia-limite">Neste protótipo, as operações são apenas simuladas. Não há gravação de dados, cobrança ou movimentação real de estoque.</p>
+<p class="historia-limite">As movimentações são gravadas no banco, com responsável, data e hora.</p>
 </details>
 @endsection

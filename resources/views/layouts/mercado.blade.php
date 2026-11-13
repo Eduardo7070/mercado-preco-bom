@@ -65,28 +65,28 @@
             Início
         </a>
 
-        <a
+        @can('produtos.consultar')<a
             href="{{ route('produtos.consultar') }}"
             @if($module === 'produtos') aria-current="page" @endif
         >
             Produtos
-        </a>
+        </a>@endcan
 
-        <a
+        @can('estoque.consultar')<a
             href="{{ route('estoque.consultar') }}"
             @if($module === 'estoque') aria-current="page" @endif
         >
             Estoque
-        </a>
+        </a>@endcan
 
-        <a
+        @can('caixa.finalizar')<a
             href="{{ route('caixa.finalizar') }}"
             @if($module === 'caixa') aria-current="page" @endif
         >
             Frente de caixa
-        </a>
+        </a>@endcan
 
-        <span class="ambiente">PROTÓTIPO · SEM GRAVAÇÃO</span>
+        @can('acessos.gerenciar')<a href="{{ route('acessos.index') }}">Perfis e permissões</a>@endcan <span class="ambiente">{{ in_array($module, ['produtos', 'estoque']) ? 'Produtos e estoque' : 'Demonstração de caixa' }}</span>
     </nav>
 
     <main id="conteudo">
@@ -99,92 +99,92 @@
             <span class="historia">{{ $story }}</span>
         </div>
 
-        @if($module !== 'inicio')
+        @if(in_array($module, ['produtos', 'estoque', 'caixa']))
             <nav class="abas" aria-label="Telas do módulo">
                 @if($module === 'produtos')
-                    <a
+                    @can('produtos.cadastrar')<a
                         href="{{ route('produtos.cadastrar') }}"
                         @if($asset === 'produtos/cadastrar') aria-current="page" @endif
                     >
                         Cadastrar
-                    </a>
+                    </a>@endcan
 
-                    <a
+                    @can('produtos.editar')<a
                         href="{{ route('produtos.editar') }}"
                         @if($asset === 'produtos/editar') aria-current="page" @endif
                     >
                         Editar
-                    </a>
+                    </a>@endcan
 
-                    <a
+                    @can('produtos.inativar')<a
                         href="{{ route('produtos.inativar') }}"
                         @if($asset === 'produtos/inativar') aria-current="page" @endif
                     >
                         Inativar
-                    </a>
+                    </a>@endcan
 
-                    <a
+                    @can('produtos.consultar')<a
                         href="{{ route('produtos.consultar') }}"
                         @if($asset === 'produtos/consultar') aria-current="page" @endif
                     >
                         Consultar
-                    </a>
+                    </a>@endcan
                 @elseif($module === 'estoque')
-                    <a
+                    @can('estoque.entrada')<a
                         href="{{ route('estoque.entrada') }}"
                         @if($asset === 'estoque/entrada') aria-current="page" @endif
                     >
                         Entrada
-                    </a>
+                    </a>@endcan
 
-                    <a
+                    @can('estoque.saida')<a
                         href="{{ route('estoque.saida') }}"
                         @if($asset === 'estoque/saida') aria-current="page" @endif
                     >
                         Saída
-                    </a>
+                    </a>@endcan
 
-                    <a
+                    @can('estoque.consultar')<a
                         href="{{ route('estoque.consultar') }}"
                         @if($asset === 'estoque/consultar') aria-current="page" @endif
                     >
                         Consultar saldos
-                    </a>
+                    </a>@endcan
 
-                    <a
+                    @can('estoque.ajustar')<a
                         href="{{ route('estoque.ajustar') }}"
                         @if($asset === 'estoque/ajustar') aria-current="page" @endif
                     >
                         Ajustar estoque
-                    </a>
+                    </a>@endcan
                 @else
-                    <a
+                    @can('caixa.finalizar')<a
                         href="{{ route('caixa.finalizar') }}"
                         @if($asset === 'caixa/finalizar') aria-current="page" @endif
                     >
                         Venda / PDV
-                    </a>
+                    </a>@endcan
 
-                    <a
+                    @can('caixa.cancelar')<a
                         href="{{ route('caixa.cancelar') }}"
                         @if($asset === 'caixa/cancelar') aria-current="page" @endif
                     >
                         Cancelar item
-                    </a>
+                    </a>@endcan
 
-                    <a
+                    @can('caixa.pagamento')<a
                         href="{{ route('caixa.pagamento') }}"
                         @if($asset === 'caixa/pagamento') aria-current="page" @endif
                     >
                         Pagamento
-                    </a>
+                    </a>@endcan
 
-                    <a
+                    @can('caixa.estornar')<a
                         href="{{ route('caixa.estornar') }}"
                         @if($asset === 'caixa/estornar') aria-current="page" @endif
                     >
                         Estornar venda
-                    </a>
+                    </a>@endcan
                 @endif
             </nav>
         @endif
@@ -208,7 +208,7 @@
 
         <footer class="rodape">
             <span>Mercado Preço Bom · Protótipos de interface</span>
-            <span>Dados ilustrativos. Nenhuma operação é gravada.</span>
+            <span>Produtos e movimentações de estoque são gravados. Caixa em demonstração.</span>
         </footer>
     </main>
 
