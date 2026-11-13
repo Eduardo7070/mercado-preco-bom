@@ -1,224 +1,270 @@
-const { chromium } = require(process.argv[2]);
-const assert = require("node:assert/strict");
-const fs = require("node:fs/promises");
-(async () => {
-    const browser = await chromium.launch({
-        executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe",
-        headless: true,
-    });
-    try {
-        const page = await browser.newPage({
-            viewport: { width: 1440, height: 1000 },
-        });
-        const errors = [],
-            writes = [];
-        page.on("pageerror", (e) => errors.push(e.message));
-        await page.route("**/*", (r) => {
-            if (!["GET", "HEAD"].includes(r.request().method())) {
-                writes.push(r.request().url());
-                return r.abort();
-            }
-            return r.continue();
-        });
-        const pages = [
-            "",
-            "produtos/cadastrar",
-            "produtos/editar",
-            "produtos/inativar",
-            "produtos/consultar",
-            "estoque/entrada",
-            "estoque/saida",
-            "estoque/consultar",
-            "estoque/ajustar",
-            "caixa/finalizar",
-            "caixa/cancelar",
-            "caixa/pagamento",
-            "caixa/estornar",
-        ];
-        const open = async (p) => {
-            const r = await page.goto("http://127.0.0.1:8091/" + p);
-            assert.equal(r.status(), 200, p);
-            await page.locator("h1").waitFor();
-        };
-        const confirm = async () => {
- await page.locator("#confirmar").click();
- await page.waitForFunction(() => !document.getElementById('confirmacao').open && !document.getElementById('mensagem').hidden && document.getElementById('mensagem').getAttribute('role') === 'status');
-};
-        await fs.mkdir("storage/app/prototipos", { recursive: true });
-        for (const p of pages) {
-            await open(p);
-            assert(
-                await page.evaluate(
-                    () =>
-                        document.documentElement.scrollWidth <= innerWidth + 1,
-                ),
-                p,
-            );
-            if (
-                [
-                    "",
-                    "caixa/finalizar",
-                    "produtos/cadastrar",
-                    "estoque/entrada",
-                    "caixa/estornar",
-                ].includes(p)
-            )
-                await page.screenshot({
-                    path:
-                        "storage/app/prototipos/" +
-                        (p.replaceAll("/", "-") || "inicio") +
-                        ".png",
-                    fullPage: true,
-                });
-        }
-        await open("produtos/cadastrar");
-        await page.locator("#codigo").fill("1001");
-        await page.locator("#nome").fill("Produto exemplo");
-        await page.locator("#categoria").selectOption("Mercearia");
-        await page.locator("#preco").fill("12");
-        await page.getByRole("button", { name: "Revisar cadastro" }).click();
-        await page
-            .getByRole("alert")
-            .filter({ hasText: "já utilizado" })
-            .waitFor();
-        await page.locator("#codigo").fill("1010");
-        await page.getByRole("button", { name: "Revisar cadastro" }).click();
-        await confirm();
-        await page
-            .getByRole("status")
-            .filter({ hasText: "Nenhum produto" })
-            .waitFor();
-        await open("produtos/editar");
-        await page.locator("#preco").fill("26");
-        await page.getByRole("button", { name: "Revisar alterações" }).click();
-        await confirm();
-        await open("produtos/inativar");
-        await page.locator("#produto").selectOption("1004");
-        assert(await page.locator("#revisar").isDisabled());
-        await page.locator("#produto").selectOption("1001");
-        await page.locator("#motivo").fill("Fora de linha");
-        await page.locator("#revisar").click();
-        await confirm();
-        await open("produtos/consultar");
-        await page.locator("#busca").fill("1010");
-        await page.locator("#vazio").waitFor();
-        await page.locator("#busca").fill("arroz");
-        assert.equal(await page.locator("#resultados tr").count(), 2);
-        await open("estoque/entrada");
-        await page.locator("#lote").fill("LT0926");
-        await page.locator("#validade").fill("2027-09-25");
-        await page.getByRole("button", { name: "Revisar entrada" }).click();
-        await confirm();
-        await open("estoque/saida");
-        await page.locator("#quantidade").fill("50");
-        await page.locator("#motivo").fill("Devolução");
-        await page.getByRole("button", { name: "Revisar saída" }).click();
-        await page
-            .getByRole("alert")
-            .filter({ hasText: "Saldo insuficiente" })
-            .waitFor();
-        await page.locator("#quantidade").fill("5");
-        await page.getByRole("button", { name: "Revisar saída" }).click();
-        await confirm();
-        await open("estoque/consultar");
-        await page.locator("#busca").fill("1003");
-        await page.getByRole("button", { name: "Detalhes" }).first().click();
-        await page.locator("#modal-detalhes[open]").waitFor();
-        assert.match(await page.locator("#titulo-detalhes").textContent(), /Café tradicional 500 g/);
-        await page.locator("#modal-detalhes .secundario").click();
-        await open("estoque/ajustar");
-        await page.locator("#tipo").selectOption("avaria");
-        await page.locator("#quantidade").fill("2");
-        await page.locator("#motivo").fill("Embalagem avariada");
-        assert.equal(await page.locator("#saldo-novo").textContent(), "18 UN");
-        await page.getByRole("button", { name: "Revisar ajuste" }).click();
-        await confirm();
-        await open("caixa/finalizar");
-        await page.keyboard.press("F2");
-        assert(
-            await page
-                .locator("#codigo")
-                .evaluate((el) => el === document.activeElement),
-        );
-        await page.locator("#codigo").fill("1004");
-        await page.locator("#incluir").click();
-        await page.getByRole("alert").filter({ hasText: "inativo" }).waitFor();
-        await page.locator("#codigo").fill("1002");
-        await page.locator("#incluir").click();
-        assert.match(await page.locator("#total").textContent(), /85,00/);
-        await page.keyboard.press("F4");
-        await confirm();
-        assert(await page.locator("#finalizar").isDisabled());
-        await open("caixa/cancelar");
-        await page
-            .getByRole("button", { name: "Cancelar item 1", exact: true })
-            .click();
-        await confirm();
-        assert.match(await page.locator("#total").textContent(), /30,00/);
-        assert(
-            await page
-                .getByRole("button", { name: "Cancelar item 1", exact: true })
-                .isDisabled(),
-        );
-        await page.locator("#concluida").click();
-        await page
-            .getByRole("button", { name: "Cancelar item 2", exact: true })
-            .click();
-        await page
-            .getByRole("alert")
-            .filter({ hasText: "Venda concluída" })
-            .waitFor();
-        await open("caixa/pagamento");
-        await page.getByRole("radio", { name: "Pix", exact: true }).check();
-        await page.locator("#finalizar").click();
-        await page
-            .getByRole("alert")
-            .filter({ hasText: "Pagamento pendente" })
-            .waitFor();
-        await page.locator("#aprovado").check();
-        await page.locator("#finalizar").click();
-        await confirm();
-        await open("caixa/estornar");
-        await page.locator("#perfil").selectOption("Operador sem autorização");
-        await page.locator("#motivo").fill("Venda duplicada");
-        await page.locator("#revisar").click();
-        await page
-            .getByRole("alert")
-            .filter({ hasText: "sem autorização" })
-            .waitFor();
-        await page.locator("#perfil").selectOption("Responsável autorizado");
-        await page.locator("#revisar").click();
-        await confirm();
-        assert(await page.locator("#revisar").isDisabled());
-        await page.locator("#busca").fill("99999");
-        await page.locator("#vazio").waitFor();
-        assert(await page.locator("#formulario").isHidden());
-        await page.setViewportSize({ width: 390, height: 844 });
-        for (const p of pages) {
-            await open(p);
-            assert(
-                await page.evaluate(
-                    () =>
-                        document.documentElement.scrollWidth <= innerWidth + 1,
-                ),
-                "Overflow " + p,
-            );
-            if (p === "caixa/finalizar")
-                await page.screenshot({
-                    path: "storage/app/prototipos/caixa-mobile.png",
-                    fullPage: true,
-                });
-        }
-        assert.deepEqual(errors, []);
-        assert.deepEqual(writes, []);
-        console.log(
-            "PASS: 13 telas desktop/mobile, validações das 12 histórias, F2/F4, zero erros de JavaScript e zero gravações.",
-        );
-    } finally {
-        await browser.close();
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+module.exports=async function(browser,baseURL,password,root){
+    const context=await browser.newContext({viewport:{width:1440,height:1000}});
+    const page=await context.newPage();const errors=[];
+    page.on('pageerror',error=>errors.push(error.message));
+    page.on('response',r=>{if(r.url().startsWith(baseURL)&&r.status()>=500)errors.push(r.status()+' '+r.url());});
+    const screenshotDir=path.join(root,'test-results','review');fs.mkdirSync(screenshotDir,{recursive:true});
+    async function visit(url){const response=await page.goto(baseURL+url);assert.equal(response.status(),200,url);await page.waitForLoadState('networkidle');}
+    async function closeAlert(){await page.evaluate(()=>window.Swal?.close());}
+    await visit('/login');
+    await page.locator('[name="email"]').fill('admin@mercadoprecobom.local');await page.locator('[name="password"]').fill(password);
+    await Promise.all([page.waitForURL(baseURL+'/'),page.getByRole('button',{name:'Entrar',exact:true}).click()]);
+    for(const url of ['/produtos/cadastrar','/produtos/consultar','/estoque/consultar','/estoque/entrada','/estoque/saida','/estoque/ajustar','/estoque/lotes','/caixa/finalizar','/caixa/cancelar','/caixa/pagamento','/caixa/estornar','/caixa/sessoes','/caixa/vendas','/usuarios','/usuarios/criar','/minha-conta/senha','/acessos','/cadastros/clientes','/cadastros/fornecedores','/cadastros/categorias','/cadastros/terminais','/compras','/relatorios']){await visit(url);}
+    for(const resource of ['clientes','fornecedores','categorias','terminais']){
+        await page.setViewportSize({width:1440,height:1000});
+        await visit('/cadastros/'+resource);await closeAlert();
+        const searchForm=page.locator('form[method="GET"]');
+        const searchInput=searchForm.locator('[name="q"]');
+        const searchButton=searchForm.getByRole('button',{name:'Pesquisar',exact:true});
+        await searchInput.fill('Be');await searchInput.focus();
+        let inputBox=await searchInput.boundingBox();let buttonBox=await searchButton.boundingBox();
+        assert.ok(buttonBox.x>=inputBox.x+inputBox.width+10,'Pesquisa e botão devem ter espaço entre si no desktop.');
+        await searchForm.screenshot({path:path.join(screenshotDir,'pesquisa-'+resource+'-desktop.png')});
+        await Promise.all([page.waitForURL('**/cadastros/'+resource+'?q=Be'),searchButton.click()]);
+        await page.waitForLoadState('networkidle');
+        assert.equal(await searchInput.inputValue(),'Be');await closeAlert();
+        await page.setViewportSize({width:390,height:844});await searchInput.focus();
+        inputBox=await searchInput.boundingBox();buttonBox=await searchButton.boundingBox();
+        assert.ok(buttonBox.y>=inputBox.y+inputBox.height+10,'Botão de pesquisa deve ficar abaixo do campo no celular.');
+        assert.ok(Math.abs(buttonBox.width-inputBox.width)<2);
+        await searchForm.screenshot({path:path.join(screenshotDir,'pesquisa-'+resource+'-mobile.png')});
     }
-})().catch((e) => {
-    console.error(e);
-    process.exit(1);
-});
-
+    await page.setViewportSize({width:1440,height:1000});
+    await visit('/estoque/lotes');
+    const pagination=page.getByRole('navigation',{name:'Paginação',exact:true});
+    assert.ok((await pagination.boundingBox()).height<120);
+    assert.equal(await pagination.locator('svg').count(),0);
+    await pagination.getByRole('link',{name:'Próxima',exact:true}).click();
+    await page.waitForURL('**/estoque/lotes?page=2');
+    await page.waitForLoadState('networkidle');
+    assert.match(await page.locator('.paginacao-resumo').textContent(),/21 a 22 de 22/);
+    await page.setViewportSize({width:390,height:844});await visit('/estoque/lotes');
+    assert.ok((await pagination.boundingBox()).height<180);
+    await page.screenshot({path:path.join(screenshotDir,'lotes-mobile.png'),fullPage:true});
+    await page.setViewportSize({width:1440,height:1000});await visit('/estoque/lotes');
+    await page.screenshot({path:path.join(screenshotDir,'lotes-desktop.png'),fullPage:true});
+    assert.equal(await page.locator('tbody details, tbody form').count(),0);
+    await page.locator('.regularizar-lote[data-exige-validade="1"]').first().click();
+    const requiredModal=page.locator('#modal-lote');
+    const lotBounds=await requiredModal.locator('[name="lot"]').boundingBox();
+    const expiryBounds=await requiredModal.locator('[name="expires_on"]').boundingBox();
+    assert.ok(Math.abs(lotBounds.y-expiryBounds.y)<2,'Lote e validade devem começar na mesma altura, inclusive com validade obrigatória.');
+    assert.equal(await requiredModal.locator('[name="expires_on"]').getAttribute('required'),'');
+    await page.screenshot({path:path.join(screenshotDir,'lote-modal-validade-obrigatoria.png')});
+    await page.keyboard.press('Escape');
+    const regularizeButton=page.getByRole('button',{name:'Regularizar lote',exact:true}).first();
+    const firstBatchId=await regularizeButton.getAttribute('data-id');
+    await regularizeButton.click();
+    const batchModal=page.locator('#modal-lote');
+    const batchForm=page.locator('#form-lote');
+    await page.waitForSelector('#modal-lote[open]');
+    const originalLot=await batchForm.locator('[name="lot"]').inputValue();
+    await batchForm.locator('[name="lot"]').fill('Edição cancelada');
+    await batchModal.getByRole('button',{name:'Cancelar',exact:true}).click();
+    await regularizeButton.click();
+    assert.equal(await batchForm.locator('[name="lot"]').inputValue(),originalLot);
+    await page.keyboard.press('Escape');
+    await regularizeButton.click();
+    const expiry=new Date();expiry.setDate(expiry.getDate()+90);
+    const expiryText=expiry.toISOString().slice(0,10);
+    await batchForm.locator('[name="expires_on"]').fill(expiryText);
+    await batchForm.locator('[name="reason"]').fill('Conferência do lote pelo navegador');
+    await page.screenshot({path:path.join(screenshotDir,'lote-modal-desktop.png')});
+    await page.setViewportSize({width:390,height:844});
+    const batchModalBox=await batchModal.boundingBox();
+    assert.ok(batchModalBox.x>=0 && batchModalBox.x+batchModalBox.width<=391);
+    await page.screenshot({path:path.join(screenshotDir,'lote-modal-mobile.png')});
+    await page.setViewportSize({width:1440,height:1000});
+    await Promise.all([page.waitForNavigation(),batchModal.getByRole('button',{name:'Salvar conferência',exact:true}).click()]);
+    await page.waitForLoadState('networkidle');await closeAlert();
+    assert.equal(await page.locator('#modal-lote[open]').count(),0);
+    const updatedBatch=page.locator('.regularizar-lote[data-id="'+firstBatchId+'"]');
+    assert.equal(await updatedBatch.getAttribute('data-validade'),expiryText);
+    const lotsSearch=page.locator('form[method="GET"]');
+    const lotsInput=lotsSearch.locator('[name="q"]');
+    const lotsButton=lotsSearch.getByRole('button',{name:'Pesquisar',exact:true});
+    await lotsInput.fill('Arroz');await lotsInput.focus();
+    let lotsInputBox=await lotsInput.boundingBox();let lotsButtonBox=await lotsButton.boundingBox();
+    assert.ok(lotsButtonBox.x>=lotsInputBox.x+lotsInputBox.width+10);
+    await lotsSearch.screenshot({path:path.join(screenshotDir,'lotes-pesquisa-desktop.png')});
+    await page.setViewportSize({width:390,height:844});
+    lotsInputBox=await lotsInput.boundingBox();lotsButtonBox=await lotsButton.boundingBox();
+    assert.ok(lotsButtonBox.y>=lotsInputBox.y+lotsInputBox.height+10);
+    await lotsSearch.screenshot({path:path.join(screenshotDir,'lotes-pesquisa-mobile.png')});
+    await page.setViewportSize({width:1440,height:1000});
+    for(const operation of ['entrada','saida','ajustar']){
+        await visit('/estoque/'+operation);await closeAlert();
+        const stockSearch=page.locator('#produto-busca');
+        await stockSearch.fill('Arro');
+        await page.getByRole('option').filter({hasText:'Arroz branco'}).click();
+        assert.notEqual(await page.locator('#produto').inputValue(),'');
+        assert.equal(await page.locator('#saldo-atual').textContent(),'40 UN');
+        if(operation==='entrada'){
+            assert.equal(await page.locator('#controle-lote').isVisible(),true);
+            assert.equal(await page.locator('#lote').getAttribute('required'),'');
+        }
+        await stockSearch.fill('produto inexistente');
+        assert.equal(await page.locator('#produto').inputValue(),'');
+        await page.waitForFunction(()=>document.querySelector('#produto-busca-status').textContent==='Nenhum produto encontrado.');
+        await stockSearch.fill('DEMO-1008');
+        await page.getByRole('option').filter({hasText:'Detergente'}).waitFor();
+        await page.screenshot({path:path.join(screenshotDir,'estoque-'+operation+'-busca.png'),fullPage:true});
+        await stockSearch.press('ArrowDown');await stockSearch.press('Enter');
+        assert.equal(await stockSearch.inputValue(),'Detergente neutro 500 ml');
+        assert.equal(await page.locator('#saldo-atual').textContent(),(operation==='saida'?'32':'30')+' UN');
+        if(operation==='entrada')assert.equal(await page.locator('#controle-lote').isVisible(),false);
+        await page.locator('#quantidade').fill(operation==='ajustar'?'30':'2');
+        assert.equal(await page.locator('#saldo-novo').textContent(),(operation==='entrada'?'32':'30')+' UN');
+        if(operation!=='entrada')await page.locator('#motivo').fill('Conferência automatizada da busca de produtos');
+        await Promise.all([page.waitForNavigation(),page.locator('#formulario button.botao').click()]);
+        await page.waitForLoadState('networkidle');
+        assert.equal(await page.locator('.aviso.erro').count(),0);
+        assert.match(await page.locator('#formulario .aviso[role="status"]').textContent(),/sucesso/);
+        await closeAlert();
+    }
+    await visit('/estoque/saida');await closeAlert();
+    const stockTabs=page.getByRole('navigation',{name:'Telas do módulo'});
+    assert.equal(await stockTabs.getByRole('link',{name:'Ajustar estoque',exact:true}).count(),0);
+    await page.locator('#tipo').selectOption('avaria');
+    await page.locator('#produto-busca').fill('DEMO-1008');
+    await page.getByRole('option').filter({hasText:'Detergente'}).click();
+    await page.locator('#quantidade').fill('1');
+    assert.equal(await page.locator('#saldo-novo').textContent(),'29 UN');
+    await page.locator('#motivo').fill('Avaria de conferência automatizada');
+    await Promise.all([page.waitForNavigation(),page.locator('#formulario button.botao').click()]);
+    await page.waitForLoadState('networkidle');await closeAlert();
+    await page.locator('#tipo').selectOption('contagem');
+    await page.locator('#produto-busca').fill('DEMO-1008');
+    await page.getByRole('option').filter({hasText:'Detergente'}).click();
+    assert.equal(await page.locator('#saldo-atual').textContent(),'29 UN');
+    await page.locator('#quantidade').fill('30');
+    assert.match(await page.locator('#quantidade-label').textContent(),/encontrada/);
+    assert.equal(await page.locator('#saldo-novo').textContent(),'30 UN');
+    await page.screenshot({path:path.join(screenshotDir,'saida-unificada-desktop.png'),fullPage:true});
+    await page.setViewportSize({width:390,height:844});
+    await page.screenshot({path:path.join(screenshotDir,'saida-unificada-mobile.png'),fullPage:true});
+    await page.setViewportSize({width:1440,height:1000});
+    await page.locator('#motivo').fill('Contagem física automatizada');
+    await Promise.all([page.waitForNavigation(),page.locator('#formulario button.botao').click()]);
+    await page.waitForLoadState('networkidle');
+    assert.equal(await page.locator('.aviso.erro').count(),0);
+    await visit('/estoque/entrada');await closeAlert();
+    await page.setViewportSize({width:390,height:844});
+    await page.locator('#produto-busca').fill('Banana');
+    await page.getByRole('option').filter({hasText:'Banana'}).waitFor();
+    await page.screenshot({path:path.join(screenshotDir,'estoque-busca-mobile.png'),fullPage:true});
+    await page.getByRole('option').filter({hasText:'Banana'}).click();
+    await page.locator('#quantidade').fill('0.125');
+    assert.equal(await page.locator('#saldo-novo').textContent(),'20.125 KG');
+    assert.equal(await page.locator('#quantidade').getAttribute('step'),'0.001');
+    await page.setViewportSize({width:1440,height:1000});
+    await visit('/produtos/cadastrar');await closeAlert();
+    await page.locator('[name="codigo"]').fill('UI-123');await page.locator('[name="nome"]').fill('Produto do navegador');await page.locator('[name="categoria"]').selectOption({label:'Limpeza'});await page.locator('[name="preco"]').fill('12.50');
+    await Promise.all([page.waitForNavigation(),page.locator('#formulario button.botao:not(#limpar)').click()]);
+    await visit('/produtos/consultar');await closeAlert();
+    const productTabs=page.getByRole('navigation',{name:'Telas do módulo'});
+    await productTabs.getByRole('link').first().waitFor();
+    assert.deepEqual((await productTabs.getByRole('link').allTextContents()).map(text=>text.trim()),['Cadastrar','Gerenciar produtos']);
+    assert.equal(await productTabs.getByRole('link',{name:'Editar',exact:true}).count(),0);
+    await page.screenshot({path:path.join(screenshotDir,'gerenciar-produtos.png'),fullPage:true});
+    await page.locator('#busca').fill('Produto do navegador');await page.waitForFunction(()=>document.querySelector('#resultados')?.textContent.includes('Produto do navegador') && document.querySelectorAll('#resultados tr').length===1);
+    assert.equal(await page.locator('#resultados tr').count(),1);
+    await page.getByRole('button',{name:'Detalhes',exact:true}).click();await page.waitForSelector('#modal-detalhes[open]');await page.waitForFunction(()=>document.querySelector('#historico-status').textContent!=='Carregando histórico…');await page.screenshot({path:path.join(screenshotDir,'produto-modal.png')});await page.keyboard.press('Escape');
+    await page.getByRole('button',{name:'Editar',exact:true}).click();await page.waitForSelector('#modal-editar[open]');await page.locator('#form-editar [name="nome"]').fill('Produto do navegador editado');await page.locator('#form-editar button[type="submit"]').click();await page.waitForSelector('#modal-editar[open]',{state:'hidden'});await closeAlert();
+    await page.getByRole('button',{name:'Excluir',exact:true}).click();await page.waitForSelector('#modal-deletar[open]');await page.locator('#form-deletar [name="motivo"]').fill('Teste de exclusão sem histórico');await page.locator('#form-deletar button[type="submit"]').click();await page.waitForSelector('#modal-deletar[open]',{state:'hidden'});await closeAlert();
+    await visit('/caixa/sessoes');await closeAlert();
+    const opening=page.locator('form').filter({has:page.locator('[name="action"][value="open"]')});
+    await opening.locator('[name="amount"]').fill('100');await opening.getByRole('button',{name:'Abrir caixa',exact:true}).click();await page.waitForLoadState('networkidle');
+    await visit('/caixa/sessoes');await closeAlert();
+    let moneyBox=await page.locator('#movimentar-dinheiro').boundingBox();
+    let closingBox=await page.locator('#fechar-caixa').boundingBox();
+    assert.ok(closingBox.y>=moneyBox.y+moneyBox.height+24,'Movimentação e fechamento precisam de espaço e cartões separados.');
+    await page.screenshot({path:path.join(screenshotDir,'sessoes-desktop.png'),fullPage:true});
+    await page.setViewportSize({width:390,height:844});
+    moneyBox=await page.locator('#movimentar-dinheiro').boundingBox();closingBox=await page.locator('#fechar-caixa').boundingBox();
+    assert.ok(closingBox.y>=moneyBox.y+moneyBox.height+20);
+    await page.screenshot({path:path.join(screenshotDir,'sessoes-mobile.png'),fullPage:true});
+    await page.setViewportSize({width:1440,height:1000});
+    await visit('/caixa/finalizar');await closeAlert();await page.locator('#codigo').fill('DEMO-1001');await page.getByRole('button',{name:'Incluir produto'}).click();
+    assert.match(await page.locator('#total').textContent(),/25,90/);
+    await page.reload();await page.waitForLoadState('networkidle');assert.match(await page.locator('#total').textContent(),/25,90/);
+    await page.locator('#codigo').fill('DEMO-1008');await page.getByRole('button',{name:'Incluir produto'}).click();
+    await page.getByRole('navigation',{name:'Telas do módulo'}).getByRole('link',{name:'Cancelar item',exact:true}).click();await page.waitForURL('**/caixa/cancelar');await page.waitForLoadState('networkidle');
+    assert.equal(await page.locator('#cupom tr').count(),2);
+    const cancelled=page.locator('#cupom tr').filter({hasText:'Detergente'});
+    await cancelled.getByRole('button',{name:'Cancelar item',exact:true}).click();
+    await page.getByRole('button',{name:'Confirmar',exact:true}).click();
+    await page.waitForFunction(()=>document.querySelectorAll('#cupom tr').length===1);await closeAlert();
+    await page.screenshot({path:path.join(screenshotDir,'cancelar-item.png'),fullPage:true});
+    await page.getByRole('link',{name:'Ir para pagamento',exact:true}).click();await page.waitForURL('**/caixa/pagamento');await page.waitForLoadState('networkidle');
+    assert.match(await page.locator('#total').textContent(),/25,90/);
+    await page.locator('#identificar-cliente summary').click();
+    await page.screenshot({path:path.join(screenshotDir,'pagamento.png'),fullPage:true});
+    await page.locator('#recebido').fill('30');await page.locator('[name="customer_name"]').fill('Cliente navegador');
+    await Promise.all([page.waitForURL('**/caixa/vendas/*'),page.locator('#finalizar').click()]);await closeAlert();assert.match(await page.locator('.recibo').textContent(),/Cliente navegador/);
+    assert.equal(await page.evaluate(()=>localStorage.getItem('mpb-cart-'+document.querySelector('[data-clear-cart]').dataset.clearCart)),null);
+    await page.screenshot({path:path.join(screenshotDir,'recibo.png')});
+    const receiptURL=page.url();
+    await page.getByRole('link',{name:'Estornar esta venda',exact:true}).click();await page.waitForURL('**/caixa/estornar?sale=*');await page.waitForLoadState('networkidle');
+    await page.screenshot({path:path.join(screenshotDir,'estornar-venda.png'),fullPage:true});
+    await page.locator('#tipo-estorno').selectOption('parcial');
+    assert.match(await page.locator('#valor-estorno').textContent(),/0,00/);
+    await page.locator('#tipo-estorno').selectOption('total');
+    assert.match(await page.locator('#valor-estorno').textContent(),/25,90/);
+    await page.locator('[name="reason"]').fill('Cliente devolveu a compra');
+    await page.locator('#confirmar-estorno').click();await page.getByRole('button',{name:'Confirmar',exact:true}).click();await page.waitForURL(receiptURL);await closeAlert();
+    assert.match(await page.locator('.recibo').textContent(),/Estornada/);
+    await visit('/relatorios');await closeAlert();
+    const reportURL=page.url();
+    const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('link',{name:'Exportar CSV'}).click()]);
+    assert.equal(await download.failure(),null);
+    const exported=fs.readFileSync(await download.path(),'utf8');
+    assert.match(exported,/\d{2}\/\d{2}\/\d{4} às \d{2}:\d{2}:\d{2}/);
+    assert.equal(page.url(),reportURL);
+    await page.waitForTimeout(700);
+    assert.equal(await page.evaluate(()=>Swal.isLoading()),false,'O alerta de navegação deve permanecer fechado após o download.');
+    assert.equal(await page.evaluate(()=>sessionStorage.getItem('mpb-pending-request')),null);
+    const [excelDownload]=await Promise.all([page.waitForEvent('download'),page.getByRole('link',{name:'Exportar Excel',exact:true}).click()]);
+    assert.equal(await excelDownload.failure(),null);
+    assert.match(excelDownload.suggestedFilename(),/\.xlsx$/);
+    await excelDownload.saveAs(path.join(screenshotDir,'vendas.xlsx'));
+    assert.equal(fs.readFileSync(await excelDownload.path()).subarray(0,2).toString(),'PK');
+    await page.waitForTimeout(700);
+    assert.equal(await page.evaluate(()=>Swal.isLoading()),false);
+    assert.equal(page.url(),reportURL);
+    await visit('/caixa/finalizar');await closeAlert();await page.locator('#codigo').fill('DEMO-1008');await page.getByRole('button',{name:'Incluir produto'}).click();await page.getByText('Suspender atendimento',{exact:true}).click();await page.locator('#rotulo-suspensao').fill('Atendimento em espera');
+    await page.locator('#suspender').click();await page.waitForFunction(()=>document.body.textContent.includes('Atendimento em espera'));await page.waitForLoadState('networkidle');
+    assert.match(await page.locator('body').textContent(),/Atendimento em espera/);
+    await page.getByRole('link',{name:'Atendimento em espera',exact:true}).click();await page.waitForLoadState('networkidle');
+    assert.match(await page.locator('#total').textContent(),/2,69/);
+    await page.getByRole('navigation',{name:'Telas do módulo'}).getByRole('link',{name:'Pagamento',exact:true}).click();await page.waitForURL('**/caixa/pagamento');await page.waitForLoadState('networkidle');
+    assert.match(await page.locator('#total').textContent(),/2,69/);
+    assert.notEqual(await page.locator('[name="draft_id"]').inputValue(),'');
+    await page.getByRole('link',{name:'Voltar à venda',exact:true}).click();await page.waitForLoadState('networkidle');
+    await page.getByRole('button',{name:'Descartar',exact:true}).click();await page.getByRole('button',{name:'Confirmar',exact:true}).click();await page.waitForURL(baseURL+'/caixa/finalizar');await page.waitForLoadState('networkidle');await closeAlert();
+    assert.equal(await page.locator('#cupom tr').count(),0);
+    await visit('/estoque/consultar');await page.locator('#busca').fill('Detergente');await page.waitForFunction(()=>document.querySelector('#resultados')?.textContent.includes('Detergente') && document.querySelectorAll('#resultados tr').length===1);assert.equal(await page.locator('#resultados tr').count(),1);
+    await page.setViewportSize({width:390,height:844});await visit('/caixa/finalizar');await page.screenshot({path:path.join(screenshotDir,'caixa-mobile.png'),fullPage:true});
+    await visit('/caixa/sessoes');await closeAlert();
+    let movement=page.locator('#movimentar-form');
+    await movement.locator('[name="amount"]').fill('10');await movement.locator('[name="reason"]').fill('Reforço para troco');
+    await movement.getByRole('button',{name:'Registrar suprimento',exact:true}).click();await page.waitForLoadState('networkidle');await closeAlert();
+    assert.match(await page.locator('.saldo-caixa').textContent(),/110,00/);
+    movement=page.locator('#movimentar-form');await movement.locator('[name="action"]').selectOption('withdraw');
+    await movement.locator('[name="amount"]').fill('5');await movement.locator('[name="reason"]').fill('Retirada para cofre');
+    await movement.getByRole('button',{name:'Registrar sangria',exact:true}).click();await page.waitForLoadState('networkidle');await closeAlert();
+    assert.match(await page.locator('.saldo-caixa').textContent(),/105,00/);
+    await page.locator('#fechar-form [name="amount"]').fill('105');
+    await page.locator('#fechar-form').getByRole('button',{name:'Conferir e fechar caixa',exact:true}).click();
+    await page.getByRole('button',{name:'Confirmar',exact:true}).click();await page.waitForLoadState('networkidle');await closeAlert();
+    await page.waitForSelector('#fechar-form',{state:'detached'});
+    assert.equal(await page.locator('[name="register_id"]').count(),1);
+    await closeAlert();await page.getByRole('button',{name:'Sair',exact:true}).click();await page.waitForURL('**/login');
+    await visit('/esqueci-minha-senha');
+    assert.deepEqual(errors,[],'Erros de JavaScript ou do servidor: '+errors.join('; '));
+    console.log('Interface validada: navegação, cadastro, busca, modais, abertura, venda, recuperação e suspensão do carrinho, recibo, mobile e logout.');
+    await context.close();
+};

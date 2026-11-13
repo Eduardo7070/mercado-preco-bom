@@ -6,14 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Mercado Preço Bom</title>
     <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
-    <link rel="icon" type="image/png" href="{{ asset('storage/assets/logo_mercado_verde.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('storage/logo_mercado_verde.png') }}">
+    @include('partials.alerts')
 </head>
 
 <body>
     <main class="auth-shell">
         <section class="auth-brand" aria-label="Mercado Preço Bom">
             <a class="auth-logo" href="{{ route('login') }}">
-                <img src="{{ asset('storage/assets/logo_mercado_branca.png') }}" alt="Mercado Preço Bom">
+                <img src="{{ asset('storage/logo_mercado_branca.png') }}" alt="Mercado Preço Bom">
                 <span><small>MERCADO</small><strong>Preço Bom</strong></span>
             </a>
             <div class="auth-brand-content">
@@ -34,7 +35,7 @@
                 <h2>Bem-vindo!</h2>
                 <p class="subtitle">Entre com sua conta para acessar as telas do Mercado Preço Bom.</p>
                 <a class="auth-button auth-button-link" href="{{ route('login') }}">Entrar no sistema</a>
-                <p class="auth-link">Ainda não tem conta? <a href="{{ route('register') }}">Criar usuário</a></p>
+                <p class="auth-link"><a href="{{ route('password.request') }}">Esqueci minha senha</a></p>
             </div>
         </section>
     </main>

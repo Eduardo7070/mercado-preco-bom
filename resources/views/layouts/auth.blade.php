@@ -6,14 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ $title }} | Mercado Preço Bom</title>
     <link rel="stylesheet" href="{{ asset('css/auth.css') }}" />
-    <link rel="icon" type="image/png" href="{{ asset('storage/assets/logo_mercado_verde.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('storage/logo_mercado_verde.png') }}">
+    @include('partials.alerts')
 </head>
 
 <body>
     <main class="auth-shell">
         <section class="auth-brand" aria-label="Apresentação do Mercado Preço Bom">
             <a class="auth-logo" href="{{ route('login') }}">
-                <img src="{{ asset('storage/assets/logo_mercado_branca.png') }}" alt="Mercado Preço Bom">
+                <img src="{{ asset('storage/logo_mercado_branca.png') }}" alt="Mercado Preço Bom">
                 <span><small>MERCADO</small><strong>Preço Bom</strong></span>
             </a>
             <div class="auth-brand-content">

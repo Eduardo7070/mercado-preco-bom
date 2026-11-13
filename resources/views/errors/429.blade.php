@@ -1,0 +1,1 @@
+@include('errors.alert', ['code' => 429, 'heading' => 'Aguarde antes de tentar novamente', 'description' => 'Muitas solicitações foram enviadas em pouco tempo. Aguarde e tente novamente.'])

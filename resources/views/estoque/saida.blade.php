@@ -1,38 +1,44 @@
 @extends('layouts.mercado')
 
 @section('content')
-<script type="application/json" id="produtos-estoque">@json($products)</script>
+<script type="application/json" id="produto-estoque-config">@json($productSearch)</script>
 <div class="colunas movimentacao">
     <section class="painel">
-        <div class="painel-titulo"><h2>Saída não vinculada a venda</h2></div>
+        <div class="painel-titulo"><h2>Registrar movimentação</h2></div>
         <form id="formulario" class="painel-corpo" method="POST" action="{{ route('estoque.store', ['operation' => 'saida']) }}" data-server-form>
             @csrf
             <input type="hidden" name="operation_id" value="{{ old('operation_id', (string) \Illuminate\Support\Str::uuid()) }}">
             @if(session('status'))<p class="aviso" role="status">{{ session('status') }}</p>@endif
             @if($errors->any())<div class="aviso erro" role="alert"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
             <div class="campos">
-                <label class="campo inteiro"
-                    >Produto *<select id="produto" name="product_id" required>
-<option value="">Selecione um produto</option>
-@foreach($products as $product)
-<option value="{{ $product->id }}" @selected(old('product_id') == $product->id)>{{ $product->codigo ?? $product->barras }} — {{ $product->nome }}</option>
-@endforeach
-</select></label
-                ><label class="campo"
+                <label class="campo inteiro" for="tipo">Tipo de movimentação
+                    <select id="tipo" name="tipo">
+                        @can('estoque.saida')
+                        <option value="saida" @selected(old('tipo', request('tipo', 'saida')) === 'saida')>Retirada / devolução ao fornecedor</option>
+                        @endcan
+                        @can('estoque.ajustar')
+                        <option value="avaria" @selected(old('tipo', request('tipo')) === 'avaria')>Perda / avaria</option>
+                        <option value="contagem" @selected(old('tipo', request('tipo')) === 'contagem')>Corrigir saldo por contagem</option>
+                        @endcan
+                    </select>
+                </label>
+                <p id="tipo-ajuda" class="ajuda inteiro"></p>
+                @include('partials.produto-estoque')
+                <label class="campo"
                     >Local do estoque<select id="local" name="local">
                         <option value="deposito" @selected(old('local') === 'deposito')>Depósito</option>
                         <option value="gondola" @selected(old('local') === 'gondola')>Gôndola</option>
                     </select></label
                 ><label class="campo"
-                    >Quantidade *<input
+                    ><span id="quantidade-label">Quantidade a retirar *</span><input
                         id="quantidade" name="quantidade"
                         type="number"
                         required
-                        min="1"
-                        step="1"
+                        min="0.001"
+                        step="0.001"
                         value="{{ old('quantidade', 1) }}" /></label
                 ><label class="campo inteiro"
-                    >Motivo da saída *<textarea
+                    >Justificativa *<textarea
                         id="motivo" name="motivo"
                         required
                         placeholder="Descreva o motivo da movimentação"
@@ -40,7 +46,7 @@
                 </label>
             </div>
             <div class="acoes">
-                <button class="botao">Registrar saída</button>
+                <button class="botao">Registrar movimentação</button>
             </div>
         </form>
     </section>
@@ -74,17 +80,3 @@
 </div>
 @endsection
 
-@section('historia')
-<div class="historia-cabecalho"><span class="historia-codigo">H02.002</span><h2 id="historia-titulo">Registrar saída de mercadoria</h2></div>
-<p class="historia-ator"><strong>Ator:</strong> Responsável autorizado pelo estoque</p>
-<p class="historia-descricao">Como responsável autorizado pelo estoque, quero registrar saídas não relacionadas a vendas, para controlar devoluções e outras retiradas justificadas.</p>
-<details class="historia-criterios"><summary>Critérios de aceitação</summary>
-<ul>
-    <li>Informar o produto, o local do estoque, a quantidade e o motivo obrigatório da saída.</li>
-    <li>A quantidade deve ser maior que zero e não pode superar o saldo disponível.</li>
-    <li>Apresentar o saldo anterior e o saldo previsto após a saída.</li>
-    <li>Identificar o responsável autorizado e a data e hora da movimentação.</li>
-</ul>
-<p class="historia-limite">As movimentações são gravadas no banco, com responsável, data e hora.</p>
-</details>
-@endsection

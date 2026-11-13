@@ -44,7 +44,7 @@ class ProductStockSeederTest extends TestCase
             'local' => 'deposito', 'quantidade' => 5, 'motivo' => 'Saída após carga inicial',
         ], 'saida', User::where('email', 'admin@mercadoprecobom.local')->firstOrFail());
         $this->seed(DatabaseSeeder::class);
-        $this->assertSame(35, $product->fresh()->deposito);
+        $this->assertEquals(35, $product->fresh()->deposito);
         $this->assertSame('Arroz atualizado', $product->fresh()->nome);
         $this->assertSame(30.0, $product->fresh()->preco);
         $this->assertDatabaseCount('stock_movements', 23);

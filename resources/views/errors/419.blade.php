@@ -1,0 +1,1 @@
+@include('errors.alert', ['code' => 419, 'heading' => 'Sua sessão expirou', 'description' => 'Atualize a página e entre novamente antes de reenviar o formulário.'])

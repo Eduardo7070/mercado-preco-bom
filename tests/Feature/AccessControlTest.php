@@ -2,10 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Sales\Checkout;
+use App\Models\Product;
 use App\Models\Profile;
 use App\Models\User;
 use Database\Seeders\AccessControlSeeder;
+use Database\Seeders\ProductSeeder;
+use Database\Seeders\StockSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class AccessControlTest extends TestCase
@@ -30,11 +35,11 @@ class AccessControlTest extends TestCase
         }
     }
 
-    public function test_public_registration_cannot_choose_admin(): void
+    public function test_public_registration_cannot_create_an_operator(): void
     {
-        $admin = Profile::where('slug', 'admin')->firstOrFail();
-        $this->post('/cadastro', ['name' => 'Novo', 'email' => 'novo@example.test', 'password' => 'password123', 'password_confirmation' => 'password123', 'profile_id' => $admin->id])->assertRedirect('/');
-        $this->assertSame('caixa', User::where('email', 'novo@example.test')->firstOrFail()->profile->slug);
+        $this->get('/cadastro')->assertRedirect('/login');
+        $this->post('/cadastro', ['name' => 'Novo', 'email' => 'novo@example.test', 'password' => 'password123', 'password_confirmation' => 'password123'])->assertRedirect('/login');
+        $this->assertDatabaseMissing('users', ['email' => 'novo@example.test']);
     }
 
     public function test_admin_can_update_permissions_and_assign_profiles(): void
@@ -63,5 +68,57 @@ class AccessControlTest extends TestCase
         $this->seed(AccessControlSeeder::class);
         $this->assertSame($hash, $user->fresh()->password);
         $this->assertSame(0, $user->profile->permissions()->count());
+    }
+
+    public function test_permissions_page_has_profile_selector_modal_and_active_navigation(): void
+    {
+        $admin = User::where('email', 'admin@mercadoprecobom.local')->firstOrFail();
+        $response = $this->actingAs($admin)->get('/acessos')->assertOk()
+            ->assertSee('id="perfil-selecionado"', false)
+            ->assertSee('id="modal-permissoes"', false)
+            ->assertSee('id="buscar-permissao"', false)
+            ->assertSee('data-permission-group', false);
+        $this->assertActiveNav($response->getContent(), route('acessos.index'));
+    }
+
+    public function test_permissions_modal_saves_using_json_and_admin_remains_protected(): void
+    {
+        $admin = User::where('email', 'admin@mercadoprecobom.local')->firstOrFail();
+        $profile = Profile::where('slug', 'caixa')->firstOrFail();
+        $ids = $profile->permissions()->pluck('permissions.id')->take(2)->all();
+        $this->actingAs($admin)->putJson(route('acessos.profiles.update', $profile), ['permissions' => $ids])
+            ->assertOk()->assertJsonPath('message', 'Permissões do perfil atualizadas com sucesso.');
+        $this->assertEqualsCanonicalizing($ids, $profile->permissions()->pluck('permissions.id')->all());
+        $adminProfile = Profile::where('slug', 'admin')->firstOrFail();
+        $count = $adminProfile->permissions()->count();
+        $this->putJson(route('acessos.profiles.update', $adminProfile), ['permissions' => []])->assertUnprocessable();
+        $this->assertSame($count, $adminProfile->permissions()->count());
+    }
+
+    public function test_sales_and_receipt_highlight_sales_instead_of_pdv(): void
+    {
+        $admin = User::where('email', 'admin@mercadoprecobom.local')->firstOrFail();
+        $this->actingAs($admin);
+        $this->assertActiveNav($this->get('/caixa/vendas')->assertOk()->getContent(), route('caixa.vendas'));
+        $this->assertActiveNav($this->get('/caixa/finalizar')->assertOk()->getContent(), route('caixa.finalizar'));
+        $this->seed(ProductSeeder::class);
+        $this->seed(StockSeeder::class);
+        $p = Product::where('codigo', 'DEMO-1001')->firstOrFail();
+        $this->openCash($admin);
+        $sale = app(Checkout::class)->execute([
+            'operation_id' => (string) Str::uuid(),
+            'payment_method' => 'Pix', 'items' => [['product_id' => $p->id, 'quantity' => 1]],
+        ], $admin);
+        $this->assertActiveNav($this->get(route('caixa.vendas.show', $sale))->assertOk()->getContent(), route('caixa.vendas'));
+    }
+
+    private function assertActiveNav(string $html, string $url): void
+    {
+        $document = new \DOMDocument;
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+        $links = $xpath->query('//nav[@aria-label="Menu principal"]//a[@aria-current="page"]');
+        $this->assertSame(1, $links->length, 'A navbar deve ter exatamente um item ativo.');
+        $this->assertSame($url, $links->item(0)->getAttribute('href'));
     }
 }

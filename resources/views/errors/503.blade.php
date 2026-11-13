@@ -1,0 +1,1 @@
+@include('errors.alert', ['code' => 503, 'heading' => 'Sistema temporariamente indisponível', 'description' => 'Aguarde alguns instantes e tente novamente.'])

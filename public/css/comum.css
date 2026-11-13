@@ -193,13 +193,6 @@ h3 {
     font-size: 14px;
     margin: 0 0 12px;
 }
-.historia {
-    font: 12px monospace;
-    border: 1px solid var(--borda);
-    background: #fff;
-    padding: 8px 12px;
-    border-radius: 3px;
-}
 .abas {
     display: flex;
     gap: 2px;
@@ -569,10 +562,6 @@ input[type="number"] {
     .acoes .botao {
         flex: 1;
     }
-    .historia {
-        font-size: 10px;
-        padding: 7px;
-    }
     .painel-titulo {
         padding: 15px;
     }
@@ -581,18 +570,6 @@ input[type="number"] {
     }
 }
 
-.historia-usuario { background: #f8faf5; border: 1px solid #cbd8c5; border-left: 4px solid #39714b; border-radius: 3px; padding: 17px 20px; margin-bottom: 20px; }
-.historia-legenda { display: block; color: #65785e; text-transform: uppercase; font-size: 10px; letter-spacing: 1px; margin-bottom: 9px; }
-.historia-cabecalho { display: flex; align-items: baseline; gap: 12px; }
-.historia-codigo { color: #356544; font: bold 12px monospace; white-space: nowrap; }
-.historia-cabecalho h2 { font-size: 15px; line-height: 1.5; }
-.historia-ator { font-size: 11px; color: #60735b; margin: 8px 0; }
-.historia-descricao { font-size: 13px; line-height: 1.7; margin: 0; max-width: 1050px; }
-.historia-criterios { margin-top: 12px; font-size: 12px; }
-.historia-criterios summary { color: #245a38; font-weight: bold; cursor: pointer; width: fit-content; padding: 3px 0; }
-.historia-criterios ul { padding-left: 20px; line-height: 1.9; color: #53684c; }
-.historia-limite { border-top: 1px solid #dce4d6; padding-top: 12px; color: #687b5f; font-size: 11px; line-height: 1.7; }
-@media (max-width: 520px) { .historia-usuario { padding: 14px; } .historia-cabecalho { flex-direction: column; gap: 4px; } }
 
 .logout-form {
     margin: 0;
@@ -623,3 +600,46 @@ input[type="number"] {
 }
 
 
+/* Cadastros e operações compartilham a mesma grade de formulários. */
+.navegacao{flex-wrap:wrap;gap:4px}.navegacao>a{white-space:nowrap}.campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}.campos .campo{margin:0}.painel+.painel{margin-top:20px}.tabela-scroll input,.tabela-scroll select{max-width:100%;min-width:90px}.tabela-scroll td form{display:inline-block;margin-left:12px}.painel-corpo>.acoes{margin-top:18px}.pagina-cadastros table td:first-child{min-width:220px}.logout-button{white-space:nowrap}
+@media(max-width:640px){.campos{grid-template-columns:1fr}.navegacao>a{font-size:12px;padding:10px}.cabecalho .operador{flex-wrap:wrap}.painel-corpo{padding:16px}}
+.pagina-relatorios .painel-titulo > .acoes {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    flex-wrap: wrap;
+}
+.paginacao {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 13px;
+}
+.paginacao-resumo { margin: 0; color: #5f7166; }
+.paginacao-links { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.paginacao-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 6px 12px;
+    border: 1px solid #c5d2c8;
+    border-radius: 4px;
+    background: #fff;
+    color: #145b3d;
+    font-weight: 600;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+a.paginacao-link:hover { background: #edf4ee; border-color: #145b3d; }
+.paginacao-link:focus-visible { outline: 2px solid #145b3d; outline-offset: 3px; }
+.paginacao-atual { background: #145b3d; border-color: #145b3d; color: #fff; }
+.paginacao-link[aria-disabled="true"] { color: #7c8b82; background: #f2f5f2; }
+.paginacao-reticencias { padding: 6px; }
+@media (max-width: 640px) {
+    .paginacao { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .paginacao-links { max-width: 100%; }
+}

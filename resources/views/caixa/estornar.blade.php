@@ -1,138 +1,49 @@
 @extends('layouts.mercado')
-
 @section('content')
-<section class="estorno">
-    <header class="estorno-barra">
-        <strong>PREÇO BOM · PDV</strong><span>Caixa 01 · Supervisão</span>
-    </header>
-    <div class="estorno-titulo">ESTORNO DE VENDA</div>
-    <div class="colunas">
-        <section class="painel">
-            <div class="painel-titulo"><h2>Localizar cupom original</h2></div>
-            <div class="filtros">
-                <label class="campo"
-                    >Número da venda<input
-                        id="busca"
-                        type="search"
-                        placeholder="Ex.: 02458" /></label
-                ><label class="campo"
-                    >Venda localizada<select id="venda">
-                        <option value="02458">#02458 — Concluída</option>
-                        <option value="02457">#02457 — Estornada</option>
-                        <option value="02456">#02456 — Aberta</option>
-                    </select></label
-                >
-            </div>
-            <p id="vazio" class="vazio" hidden>Venda não encontrada.</p>
-            <form id="formulario" class="painel-corpo">
-                <dl class="resumo">
-                    <div>
-                        <dt>Cliente</dt>
-                        <dd id="cliente"></dd>
-                    </div>
-                    <div>
-                        <dt>Situação original</dt>
-                        <dd id="estado"></dd>
-                    </div>
-                    <div>
-                        <dt>Pagamento</dt>
-                        <dd id="metodo"></dd>
-                    </div>
-                    <div>
-                        <dt>Operador / caixa</dt>
-                        <dd>Mariana Oliveira / 01</dd>
-                    </div>
-                    <div>
-                        <dt>Data original</dt>
-                        <dd>25/09/2026 · 08:30</dd>
-                    </div>
-                </dl>
-                <div class="tabela-scroll">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Itens originais</th>
-                                <th>Qtd.</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Arroz branco 5 kg</td>
-                                <td>2</td>
-                                <td>R$ 50,00</td>
-                            </tr>
-                            <tr>
-                                <td>Leite integral 1 L</td>
-                                <td>6</td>
-                                <td>R$ 30,00</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="campos">
-                    <label class="campo inteiro"
-                        >Perfil utilizado na prévia<select id="perfil">
-                            <option>Responsável autorizado</option>
-                            <option>Operador sem autorização</option>
-                        </select></label
-                    ><label class="campo inteiro"
-                        >Motivo do estorno *<textarea
-                            id="motivo"
-                            required
-                            placeholder="Informe o motivo da reversão integral"
-                        ></textarea>
-                    </label>
-                </div>
-                <div class="acoes">
-                    <button id="revisar" class="botao perigo">
-                        Revisar estorno
-                    </button>
-                </div>
-            </form>
-        </section>
-        <aside class="painel">
-            <div class="painel-titulo"><h2>Total a estornar</h2></div>
-            <div class="painel-corpo">
-                <strong id="total" class="total-estorno">R$ 80,00</strong>
-                <p class="ajuda">
-                    Reversão integral da venda. Os itens, o pagamento e o
-                    operador originais permanecem identificados.
-                </p>
-                <dl class="resumo">
-                    <div>
-                        <dt>Arroz</dt>
-                        <dd>2 unidades</dd>
-                    </div>
-                    <div>
-                        <dt>Leite</dt>
-                        <dd>6 unidades</dd>
-                    </div>
-                </dl>
-                <p class="aviso">
-                    Simulação sem devolução de valores e sem alteração do
-                    estoque.
-                </p>
-            </div>
-        </aside>
-    </div>
-    <footer class="estorno-rodape">
-        Operação sujeita à autorização · Histórico preservado
-    </footer>
+@include('partials.form-feedback')
+@if(!$sale)
+<section class="painel">
+    <div class="painel-titulo"><h2>Escolha a venda para estornar</h2></div>
+    <form method="GET" action="{{ route('caixa.estornar') }}" class="painel-corpo filtros" data-server-form>
+        <label class="campo">Número da venda ou nome do cliente<input type="search" name="q" maxlength="191" value="{{ request('q') }}" placeholder="Ex.: 15 ou Maria"></label>
+        <button class="botao" type="submit">Buscar venda</button>
+    </form>
+    <div class="tabela-scroll"><table><thead><tr><th>Venda</th><th>Cliente</th><th>Data</th><th>Valor disponível</th><th>Ação</th></tr></thead><tbody>
+    @forelse($sales as $row)<tr><td>#{{ $row->id }}</td><td>{{ $row->customer_name ?: 'Consumidor final' }}</td><td>{{ $row->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td><td>R$ {{ number_format(($row->total_cents-$row->returned_cents)/100,2,',','.') }}</td><td><a class="botao secundario" href="{{ route('caixa.estornar',['sale'=>$row->id]) }}">Selecionar venda</a></td></tr>
+    @empty<tr><td colspan="5">Nenhuma venda disponível para estorno.</td></tr>@endforelse
+    </tbody></table></div><div class="painel-corpo">{{ $sales->links() }}</div>
 </section>
-@endsection
-
-@section('historia')
-<div class="historia-cabecalho"><span class="historia-codigo">H03.004</span><h2 id="historia-titulo">Estornar venda</h2></div>
-<p class="historia-ator"><strong>Ator:</strong> Responsável autorizado</p>
-<p class="historia-descricao">Como responsável autorizado, quero estornar integralmente uma venda concluída com justificativa, para corrigir uma operação indevida e preservar sua rastreabilidade.</p>
-<details class="historia-criterios"><summary>Critérios de aceitação</summary>
-<ul>
-    <li>Localizar uma venda existente e concluída que ainda não tenha sido estornada.</li>
-    <li>Exigir perfil autorizado, motivo obrigatório e confirmação do estorno integral.</li>
-    <li>Preservar os itens, o pagamento, o operador e a data da venda original.</li>
-    <li>Na operação real, reverter os valores e o estoque uma única vez, sem apagar a venda.</li>
-</ul>
-<p class="historia-limite">Neste protótipo, as operações são apenas simuladas. Não há gravação de dados, cobrança ou movimentação real de estoque.</p>
-</details>
+@else
+<section class="painel">
+    <div class="painel-titulo"><h2>Estornar venda #{{ $sale->id }}</h2><a href="{{ route('caixa.estornar') }}">Escolher outra venda</a></div>
+    <div class="estorno-resumo"><div><p>{{ $sale->customer_name ?: 'Consumidor final' }}</p><p>{{ $sale->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }} · {{ $sale->payment_method }}</p></div><strong>R$ {{ number_format(($sale->total_cents-$sale->returned_cents)/100,2,',','.') }}</strong></div>
+    @if($sale->status==='refunded')
+        <div class="painel-corpo"><p>Esta venda já foi estornada.</p><a class="botao secundario" href="{{ route('caixa.vendas.show',$sale) }}">Ver recibo</a></div>
+    @elseif(!$session)
+        <div class="painel-corpo"><p>Abra seu caixa para registrar o reembolso desta venda.</p><a class="botao" href="{{ route('caixa.sessoes') }}">Abrir caixa</a></div>
+    @else
+    <form method="POST" action="{{ route('caixa.returns',$sale) }}" id="form-estorno" class="painel-corpo atendimento-form estorno-form" data-server-form data-confirm="Confirmar o estorno dos produtos informados? O valor e o estoque serão atualizados.">
+        @csrf
+        <input type="hidden" name="operation_id" value="{{ old('operation_id',(string)\Illuminate\Support\Str::uuid()) }}">
+        <div class="campos">
+            <label class="campo">O que deseja estornar?<select id="tipo-estorno"><option value="total">Toda a venda restante</option><option value="parcial" @selected($errors->any())>Apenas alguns produtos</option></select></label>
+            <label class="campo">Condição dos produtos<select id="destino-estorno"><option value="restock">Podem voltar ao estoque</option><option value="discard">Estão avariados / devem ser descartados</option></select></label>
+        </div>
+        @php($oldReturnItems = collect(old('items', []))->keyBy('sale_item_id'))
+        <div class="tabela-scroll"><table><thead><tr><th>Produto</th><th>Disponível para devolver</th><th>Quantidade a devolver</th></tr></thead><tbody>
+        @foreach($sale->items as $index=>$item)
+        @if($item->quantity>$item->returned_quantity)
+        @php($oldReturn = $oldReturnItems->get($item->id, []))
+        <tr data-return-item data-unit-price="{{ $item->unit_price_cents }}" data-remaining-cents="{{ $item->total_cents-$item->returned_cents }}" data-returned-quantity="{{ $item->returned_quantity }}" data-returned-cents="{{ $item->returned_cents }}"><td>{{ $item->name }}<input type="hidden" name="items[{{ $index }}][sale_item_id]" value="{{ $item->id }}"><input type="hidden" data-disposition name="items[{{ $index }}][disposition]" value="{{ $oldReturn['disposition'] ?? 'restock' }}"></td><td>{{ $item->quantity-$item->returned_quantity }} {{ $item->unit }}</td><td><input class="estorno-quantidade" type="number" name="items[{{ $index }}][quantity]" min="0" max="{{ $item->quantity-$item->returned_quantity }}" step="{{ in_array($item->unit,['UN','CX'])?'1':'0.001' }}" data-return-quantity value="{{ $oldReturn['quantity'] ?? ($errors->any() ? 0 : $item->quantity-$item->returned_quantity) }}" required></td></tr>
+        @endif
+        @endforeach
+        </tbody></table></div>
+        <label class="campo">Motivo do estorno<textarea name="reason" required minlength="5" maxlength="2000" placeholder="Descreva o motivo da devolução">{{ old('reason') }}</textarea></label>
+        <div class="estorno-resumo"><span>Valor a devolver</span><strong id="valor-estorno">R$ {{ number_format(($sale->total_cents-$sale->returned_cents)/100,2,',','.') }}</strong></div>
+        <p class="ajuda">O reembolso é simulado. A opção de produtos avariados registra o descarte.</p>
+        <div class="atendimento-acoes"><a class="botao secundario" href="{{ route('caixa.vendas.show',$sale) }}">Voltar ao recibo</a><button type="submit" class="botao" id="confirmar-estorno">Confirmar estorno</button></div>
+    </form>
+    @endif
+</section>
+@endif
 @endsection

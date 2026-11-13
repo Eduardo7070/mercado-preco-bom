@@ -1,0 +1,21 @@
+@import url("./consultar.css");
+
+.regularizar-lote { white-space: nowrap; }
+#modal-lote { max-width: 620px; max-height: calc(100dvh - 32px); overflow-y: auto; }
+#modal-lote .dialogo-cabecalho { gap: 16px; }
+#modal-lote h2 { margin: 0; font-size: 20px; }
+#modal-lote .fechar { cursor: pointer; }
+#modal-lote .lote-contexto {
+    margin: 18px 0 24px;
+    padding: 14px;
+    border-radius: 4px;
+    background: #edf3ef;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+#modal-lote .acoes { margin-top: 24px; gap: 12px; }
+#modal-lote textarea { min-height: 96px; resize: vertical; }
+@media (max-width: 600px) {
+    #modal-lote { padding: 18px; }
+    #modal-lote .campos { grid-template-columns: 1fr; }
+}

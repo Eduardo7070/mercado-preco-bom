@@ -9,10 +9,11 @@
     <link rel="stylesheet" href="{{ asset('css/comum.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/'.$asset.'.css') }}" />
 
+    @include('partials.alerts')
     <script defer src="{{ asset('js/comum.js') }}"></script>
     <script defer src="{{ asset('js/'.$asset.'.js') }}"></script>
 
-    <link rel="icon" type="image/png" href="{{ asset('storage/assets/logo_mercado_verde.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('storage/logo_mercado_verde.png') }}">
 </head>
 
 <body class="pagina-{{ $module }}">
@@ -27,7 +28,7 @@
     <header class="cabecalho">
         <a class="marca" href="{{ route('inicio') }}">
             <img
-                src="{{ asset('storage/assets/logo_mercado_branca.png') }}"
+                src="{{ asset('storage/logo_mercado_branca.png') }}"
                 alt="Mercado Preço Bom"
                 class="marca-logo"
             >
@@ -42,7 +43,7 @@
             <span>Loja 01 · Unidade principal</span>
         </div>
 
-        <div class="operador">
+        <div class="operador"><a class="logout-button" href="{{ route('account.password') }}">Minha senha</a>
             <span class="avatar">{{ $iniciais }}</span>
 
             <div>
@@ -65,28 +66,31 @@
             Início
         </a>
 
-        @can('produtos.consultar')<a
+        @canany(['produtos.consultar', 'produtos.editar', 'produtos.inativar'])<a
             href="{{ route('produtos.consultar') }}"
             @if($module === 'produtos') aria-current="page" @endif
         >
             Produtos
-        </a>@endcan
+        </a>@endcanany
 
-        @can('estoque.consultar')<a
-            href="{{ route('estoque.consultar') }}"
+        @canany(['estoque.consultar', 'estoque.entrada', 'estoque.saida', 'estoque.ajustar'])<a
+            href="{{ route(auth()->user()->can('estoque.consultar') ? 'estoque.consultar' : (auth()->user()->can('estoque.entrada') ? 'estoque.entrada' : 'estoque.saida')) }}"
             @if($module === 'estoque') aria-current="page" @endif
         >
             Estoque
-        </a>@endcan
+        </a>@endcanany
 
         @can('caixa.finalizar')<a
             href="{{ route('caixa.finalizar') }}"
-            @if($module === 'caixa') aria-current="page" @endif
+            @if($module === 'caixa' && !request()->routeIs('caixa.vendas*')) aria-current="page" @endif
         >
             Frente de caixa
         </a>@endcan
 
-        @can('acessos.gerenciar')<a href="{{ route('acessos.index') }}">Perfis e permissões</a>@endcan @can('caixa.finalizar')<a href="{{ route('caixa.vendas') }}">Vendas</a>@endcan <span class="ambiente">{{ in_array($module, ['produtos', 'estoque']) ? 'Produtos e estoque' : 'Pagamento simulado' }}</span>
+        @can('acessos.gerenciar')<a href="{{ route('acessos.index') }}" @if(request()->routeIs('acessos.*')) aria-current="page" @endif>Perfis e permissões</a>@endcan @can('caixa.finalizar')<a href="{{ route('caixa.vendas') }}" @if(request()->routeIs('caixa.vendas*')) aria-current="page" @endif>Vendas</a>@endcan @can('compras.gerenciar')<a href="{{ route('compras.index') }}" @if(request()->routeIs('compras.*')) aria-current="page" @endif>Compras</a>@endcan
+@can('relatorios.consultar')<a href="{{ route('relatorios.index') }}" @if(request()->routeIs('relatorios.*')) aria-current="page" @endif>Relatórios</a>@endcan
+@canany(['clientes.gerenciar','fornecedores.gerenciar','categorias.gerenciar','caixa.gerenciar'])<a href="{{ route('cadastros.home') }}" @if(request()->routeIs('cadastros.*')) aria-current="page" @endif>Cadastros</a>@endcanany
+<span class="ambiente">{{ in_array($module, ['produtos', 'estoque']) ? 'Produtos e estoque' : 'Pagamento simulado' }}</span>
     </nav>
 
     <main id="conteudo">
@@ -95,40 +99,25 @@
                 <span class="caminho">Mercado Preço Bom / {{ ucfirst($module) }}</span>
                 <h1>{{ $title }}</h1>
             </div>
-
-            <span class="historia">{{ $story }}</span>
         </div>
 
-        @if(in_array($module, ['produtos', 'estoque', 'caixa']))
+        @if($module === 'acessos')<nav class="abas" aria-label="Telas de acesso">@can('acessos.gerenciar')<a href="{{ route('acessos.index') }}">Permissões</a><a href="{{ route('usuarios.index') }}">Usuários</a>@endcan<a href="{{ route('account.password') }}">Minha senha</a></nav>@endif
+        @if(in_array($module, ['produtos', 'estoque', 'caixa']) && !request()->routeIs('caixa.vendas*'))
             <nav class="abas" aria-label="Telas do módulo">
                 @if($module === 'produtos')
                     @can('produtos.cadastrar')<a
                         href="{{ route('produtos.cadastrar') }}"
-                        @if($asset === 'produtos/cadastrar') aria-current="page" @endif
+                        @if(request()->routeIs('produtos.cadastrar')) aria-current="page" @endif
                     >
                         Cadastrar
                     </a>@endcan
 
-                    @can('produtos.editar')<a
-                        href="{{ route('produtos.editar') }}"
-                        @if($asset === 'produtos/editar') aria-current="page" @endif
-                    >
-                        Editar
-                    </a>@endcan
-
-                    @can('produtos.inativar')<a
-                        href="{{ route('produtos.inativar') }}"
-                        @if($asset === 'produtos/inativar') aria-current="page" @endif
-                    >
-                        Inativar
-                    </a>@endcan
-
-                    @can('produtos.consultar')<a
-                        href="{{ route('produtos.consultar') }}"
-                        @if($asset === 'produtos/consultar') aria-current="page" @endif
-                    >
-                        Consultar
-                    </a>@endcan
+                    @canany(['produtos.consultar', 'produtos.editar', 'produtos.inativar'])
+                    <a href="{{ route('produtos.consultar') }}"
+                        @if(request()->routeIs('produtos.consultar', 'produtos.editar', 'produtos.inativar')) aria-current="page" @endif>
+                        Gerenciar produtos
+                    </a>
+                    @endcanany
                 @elseif($module === 'estoque')
                     @can('estoque.entrada')<a
                         href="{{ route('estoque.entrada') }}"
@@ -137,32 +126,28 @@
                         Entrada
                     </a>@endcan
 
-                    @can('estoque.saida')<a
+                    @canany(['estoque.saida', 'estoque.ajustar'])<a
                         href="{{ route('estoque.saida') }}"
                         @if($asset === 'estoque/saida') aria-current="page" @endif
                     >
-                        Saída
-                    </a>@endcan
+                        Ajuste de estoque
+                    </a>@endcanany
 
                     @can('estoque.consultar')<a
                         href="{{ route('estoque.consultar') }}"
-                        @if($asset === 'estoque/consultar') aria-current="page" @endif
+                        @if(request()->routeIs('estoque.consultar')) aria-current="page" @endif
                     >
                         Consultar saldos
                     </a>@endcan
 
-                    @can('estoque.ajustar')<a
-                        href="{{ route('estoque.ajustar') }}"
-                        @if($asset === 'estoque/ajustar') aria-current="page" @endif
-                    >
-                        Ajustar estoque
-                    </a>@endcan
+                    @can('estoque.consultar')<a href="{{ route('estoque.lotes') }}" @if(request()->routeIs('estoque.lotes')) aria-current="page" @endif>Lotes e validade</a>@endcan
                 @else
+                    <a href="{{ route('caixa.sessoes') }}" @if(request()->routeIs('caixa.sessoes')) aria-current="page" @endif>Abertura e fechamento</a>
                     @can('caixa.finalizar')<a
                         href="{{ route('caixa.finalizar') }}"
                         @if($asset === 'caixa/finalizar') aria-current="page" @endif
                     >
-                        Venda / PDV
+                        Nova venda
                     </a>@endcan
 
                     @can('caixa.cancelar')<a
@@ -191,23 +176,16 @@
 
         <noscript>
             <p class="aviso erro">
-                Ative o JavaScript para utilizar as simulações.
+                Ative o JavaScript para utilizar todos os recursos do sistema.
             </p>
         </noscript>
-
-        @hasSection('historia')
-            <section class="historia-usuario" aria-labelledby="historia-titulo">
-                <span class="historia-legenda">História de usuário</span>
-                @yield('historia')
-            </section>
-        @endif
 
         @yield('content')
 
         <p id="mensagem" class="aviso" role="status" hidden></p>
 
         <footer class="rodape">
-            <span>Mercado Preço Bom · Protótipos de interface</span>
+            <span>Mercado Preço Bom · Gestão de supermercado</span>
             <span>Vendas e estoque registrados. Pagamentos simulados, sem cobrança externa.</span>
         </footer>
     </main>
@@ -225,7 +203,7 @@
             <p id="confirmacao-texto"></p>
 
             <p class="ajuda">
-                Somente demonstração: nenhum dado será gravado.
+                Confira os dados antes de confirmar a operação.
             </p>
 
             <div class="acoes">
@@ -234,7 +212,7 @@
                 </button>
 
                 <button id="confirmar" value="confirmar" class="botao">
-                    Confirmar simulação
+                    Confirmar operação
                 </button>
             </div>
         </form>

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Access;
 
+use App\Actions\Administration\SaveUser;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
@@ -12,7 +13,6 @@ class AssignUserProfile
         if ($user->is($actor)) {
             throw ValidationException::withMessages(['profile_id' => 'Você não pode alterar seu próprio perfil.']);
         }
-        $user->profile_id = $data['profile_id'];
-        $user->save();
+        app(SaveUser::class)->execute($user, $data, $actor);
     }
 }

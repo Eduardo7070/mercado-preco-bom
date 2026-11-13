@@ -123,3 +123,10 @@
         font-size: 26px;
     }
 }
+
+.inicio-secao {margin-bottom:22px;}
+.inicio-nota {margin-top:22px;line-height:1.7;}
+.indicadores {grid-template-columns:repeat(auto-fit,minmax(210px,1fr));}
+.indicadores small {font-size:11px;line-height:1.6;display:block;}
+.modulos {grid-template-columns:repeat(auto-fit,minmax(240px,1fr));}
+@media (max-width:520px) {.indicadores,.modulos {grid-template-columns:1fr;}.boas-vindas h2 {overflow-wrap:anywhere;}}

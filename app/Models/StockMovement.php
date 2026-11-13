@@ -9,6 +9,11 @@ class StockMovement extends Model
 {
     protected $guarded = [];
 
+    protected function casts(): array
+    {
+        return ['allocations' => 'array', 'quantidade' => 'float', 'saldo_anterior' => 'float', 'saldo_final' => 'float'];
+    }
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

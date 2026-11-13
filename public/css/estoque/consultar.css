@@ -42,3 +42,16 @@
         gap: 8px;
     }
 }
+
+.catalogo-atalhos {display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+.catalogo-atalhos .ajuda {flex-basis:100%;}
+.catalogo-paginacao {padding:18px;}
+.consulta .filtros {align-items:end;flex-wrap:wrap;}
+.consulta .filtros .campo {flex:1;min-width:140px;}
+.consulta .filtros .campo:first-child {flex:3;min-width:220px;}
+.erro-modal {white-space:pre-line;}
+#historico-area {margin-top:24px;}
+#historico-area table {min-width:680px;}
+#busca-status {margin:12px 20px;}
+dialog.modal-consulta {width:min(920px,calc(100vw - 24px));max-width:920px;}
+@media(max-width:600px){.consulta .filtros .campo {width:100%;}.consulta table {min-width:720px;}}.filtros-lotes { padding: 16px 0 0; }

@@ -1,0 +1,1 @@
+@include('errors.alert', ['code' => 403, 'heading' => 'Acesso não permitido', 'description' => 'Seu perfil não tem permissão para esta ação. Solicite acesso ao administrador.'])

@@ -1,0 +1,1 @@
+@include('errors.alert', ['code' => 500, 'heading' => 'Não foi possível concluir', 'description' => 'O servidor encontrou um problema. Não reenvie pagamentos ou movimentações sem conferir o histórico primeiro.'])
