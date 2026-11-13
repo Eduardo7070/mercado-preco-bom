@@ -86,7 +86,7 @@
             Frente de caixa
         </a>@endcan
 
-        @can('acessos.gerenciar')<a href="{{ route('acessos.index') }}">Perfis e permissões</a>@endcan <span class="ambiente">{{ in_array($module, ['produtos', 'estoque']) ? 'Produtos e estoque' : 'Demonstração de caixa' }}</span>
+        @can('acessos.gerenciar')<a href="{{ route('acessos.index') }}">Perfis e permissões</a>@endcan @can('caixa.finalizar')<a href="{{ route('caixa.vendas') }}">Vendas</a>@endcan <span class="ambiente">{{ in_array($module, ['produtos', 'estoque']) ? 'Produtos e estoque' : 'Pagamento simulado' }}</span>
     </nav>
 
     <main id="conteudo">
@@ -208,7 +208,7 @@
 
         <footer class="rodape">
             <span>Mercado Preço Bom · Protótipos de interface</span>
-            <span>Produtos e movimentações de estoque são gravados. Caixa em demonstração.</span>
+            <span>Vendas e estoque registrados. Pagamentos simulados, sem cobrança externa.</span>
         </footer>
     </main>
 

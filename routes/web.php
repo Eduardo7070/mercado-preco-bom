@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccessController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CashierController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StockController;
 use Illuminate\Support\Facades\Route;
@@ -23,10 +24,6 @@ Route::middleware('auth')->group(function () {
     Route::view('/produtos/inativar', 'produtos.inativar', ['title' => 'Inativar produto', 'module' => 'produtos', 'asset' => 'produtos/inativar', 'story' => 'H01.003'])->middleware('can:produtos.inativar')->name('produtos.inativar');
     Route::view('/produtos/consultar', 'produtos.consultar', ['title' => 'Consultar produtos', 'module' => 'produtos', 'asset' => 'produtos/consultar', 'story' => 'H01.004'])->middleware('can:produtos.consultar')->name('produtos.consultar');
     Route::view('/estoque/consultar', 'estoque.consultar', ['title' => 'Consultar saldos', 'module' => 'estoque', 'asset' => 'estoque/consultar', 'story' => 'H02.003'])->middleware('can:estoque.consultar')->name('estoque.consultar');
-    Route::view('/caixa/finalizar', 'caixa.finalizar', ['title' => 'Frente de caixa', 'module' => 'caixa', 'asset' => 'caixa/finalizar', 'story' => 'H03.001'])->middleware('can:caixa.finalizar')->name('caixa.finalizar');
-    Route::view('/caixa/cancelar', 'caixa.cancelar', ['title' => 'Cancelar item', 'module' => 'caixa', 'asset' => 'caixa/cancelar', 'story' => 'H03.002'])->middleware('can:caixa.cancelar')->name('caixa.cancelar');
-    Route::view('/caixa/pagamento', 'caixa.pagamento', ['title' => 'Pagamento', 'module' => 'caixa', 'asset' => 'caixa/pagamento', 'story' => 'H03.003'])->middleware('can:caixa.pagamento')->name('caixa.pagamento');
-    Route::view('/caixa/estornar', 'caixa.estornar', ['title' => 'Estornar venda', 'module' => 'caixa', 'asset' => 'caixa/estornar', 'story' => 'H03.004'])->middleware('can:caixa.estornar')->name('caixa.estornar');
 });
 
 Route::middleware(['auth', 'can:acessos.gerenciar'])->group(function () {
@@ -43,3 +40,14 @@ Route::middleware('auth')->group(function () {
 Route::get('/estoque/entrada', [StockController::class, 'form'])->defaults('operation', 'entrada')->middleware(['auth', 'can:estoque.entrada'])->name('estoque.entrada');
 Route::get('/estoque/saida', [StockController::class, 'form'])->defaults('operation', 'saida')->middleware(['auth', 'can:estoque.saida'])->name('estoque.saida');
 Route::get('/estoque/ajustar', [StockController::class, 'form'])->defaults('operation', 'ajustar')->middleware(['auth', 'can:estoque.ajustar'])->name('estoque.ajustar');
+
+Route::middleware(['auth', 'can:caixa.finalizar'])->group(function () {
+    Route::get('/caixa/finalizar', [CashierController::class, 'index'])->name('caixa.finalizar');
+    Route::post('/caixa/vendas', [CashierController::class, 'store'])->middleware('can:caixa.pagamento')->name('caixa.vendas.store');
+    Route::get('/caixa/vendas', [CashierController::class, 'sales'])->name('caixa.vendas');
+    Route::get('/caixa/vendas/{sale}', [CashierController::class, 'show'])->name('caixa.vendas.show');
+    Route::post('/caixa/vendas/{sale}/estorno', [CashierController::class, 'refund'])->middleware('can:caixa.estornar')->name('caixa.vendas.refund');
+    Route::redirect('/caixa/cancelar', '/caixa/finalizar')->middleware('can:caixa.cancelar')->name('caixa.cancelar');
+    Route::redirect('/caixa/pagamento', '/caixa/finalizar')->middleware('can:caixa.pagamento')->name('caixa.pagamento');
+    Route::redirect('/caixa/estornar', '/caixa/vendas')->middleware('can:caixa.estornar')->name('caixa.estornar');
+});

@@ -373,3 +373,13 @@
         font-size: 38px;
     }
 }
+
+.ultimas-vendas {margin-top:24px;} .pdv-pagamento input,.pdv-pagamento select {max-width:100%;} .pdv-cupom .aviso {margin:12px;}
+#campos-itens {display:none;}
+.pdv-pagamento input[name="customer_name"] {font-size:15px;text-align:left;}
+.pdv-cupom td:first-child {white-space:normal;min-width:130px;}
+.pdv-cupom td:nth-child(2) {min-width:0;}
+@media (min-width:651px) and (max-width:1100px) {
+    .pdv-pagamento {grid-template-columns:repeat(2,minmax(0,1fr));}
+    .pdv-pagamento .botao {grid-column:auto;}
+}

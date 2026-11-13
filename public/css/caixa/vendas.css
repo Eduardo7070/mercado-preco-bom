@@ -1,0 +1,8 @@
+.recibo .resumo {margin: 0;}
+@media print {
+    .cabecalho, .navegacao, .abas, .titulo-pagina, .rodape, .sem-impressao, .acoes, .historia-usuario, .skip {display:none!important;}
+    body {background:white;color:black;}
+    main {padding:0;}
+    .painel {border:0;box-shadow:none;}
+    .recibo {width:100%;}
+}
