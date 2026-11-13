@@ -114,7 +114,7 @@ window.MPB = {
 document.addEventListener("submit", (event) => {
     const form = event.target;
 
-    if (form.closest("dialog") || form.classList.contains("logout-form")) {
+    if (form.closest("dialog") || form.classList.contains("logout-form") || form.hasAttribute("data-server-form")) {
         return;
     }
 

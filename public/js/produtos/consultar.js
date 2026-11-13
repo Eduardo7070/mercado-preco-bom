@@ -14,7 +14,7 @@
             "Saldo depósito": p.deposito + " UN",
             "Saldo gôndola": p.gondola + " UN",
             "Saldo total": p.deposito + p.gondola + " UN",
-            "Última movimentação": "25/09/2026 · 08:30",
+            "Última movimentação": p.movimentado_em ? new Date(p.movimentado_em).toLocaleString("pt-BR") : "Sem movimentação",
         };
     }
 
@@ -66,17 +66,28 @@
         return botao;
     }
 
-    function pesquisar() {
-        const termo = MPB.normalizar($("busca").value.trim());
-        const itens = MPB.produtos.filter(
-            (p) =>
-                (!termo ||
-                    p.codigo === termo ||
-                    p.barras === termo ||
-                    MPB.normalizar(p.nome).includes(termo)) &&
-                ($("filtro").value === "todos" ||
-                    p.ativo === ($("filtro").value === "ativos")),
-        );
+    let page = 1;
+    let controller;
+    let timer;
+    async function pesquisar() {
+        controller?.abort();
+        controller = new AbortController();
+        const signal = controller.signal;
+        const params = new URLSearchParams({ q: $("busca").value.trim(), situacao: $("filtro").value, page });
+        $("busca-status").textContent = "Pesquisando…";
+        try {
+            const response = await fetch(document.querySelector("[data-search-url]").dataset.searchUrl + "?" + params, {
+                headers: { Accept: "application/json" }, signal
+            });
+            if (!response.ok) throw new Error("Falha na pesquisa");
+            const result = await response.json();
+            if (signal.aborted) return;
+            MPB.produtos = result.data;
+            $("pagina-anterior").disabled = result.current_page <= 1;
+            $("pagina-proxima").disabled = result.current_page >= result.last_page;
+            $("pagina-atual").textContent = "Página " + result.current_page + " de " + result.last_page;
+            $("busca-status").textContent = result.total + " produtos encontrados";
+        const itens = MPB.produtos;
         $("resultados").replaceChildren();
         MPB.texto("contador", itens.length + " produtos");
         $("vazio").hidden = !!itens.length;
@@ -95,7 +106,7 @@
                 td.textContent = valor;
                 if (i === 0) {
                     const small = document.createElement("small");
-                    small.textContent = p.codigo + " · " + p.barras;
+                    small.textContent = (p.codigo ?? "Sem código") + " · " + (p.barras ?? "Sem código de barras");
                     td.append(small);
                 }
                 if (i >= 2 && i < valores.length - 1) td.className = "numerico";
@@ -114,6 +125,13 @@
             tr.append(td);
             $("resultados").append(tr);
         });
+        } catch (error) {
+            if (error.name !== "AbortError") {
+                $("busca-status").textContent = "Não foi possível pesquisar. Tente novamente.";
+                $("resultados").replaceChildren();
+                $("contador").textContent = "—";
+            }
+        }
     }
 
     $("modal-editar").addEventListener("close", () => {
@@ -127,9 +145,14 @@
         }
     });
 
-    ["busca", "filtro"].forEach((id) =>
-        $(id).addEventListener("input", pesquisar),
-    );
+    ["busca", "filtro"].forEach(id => $(id).addEventListener("input", () => {
+        page = 1;
+        controller?.abort();
+        clearTimeout(timer);
+        timer = setTimeout(pesquisar, 250);
+    }));
+    $("pagina-anterior").addEventListener("click", () => { page--; pesquisar(); });
+    $("pagina-proxima").addEventListener("click", () => { page++; pesquisar(); });
     pesquisar();
 })();
 

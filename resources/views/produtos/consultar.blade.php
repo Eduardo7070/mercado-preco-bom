@@ -1,7 +1,7 @@
 @extends('layouts.mercado')
 
 @section('content')
-<section class="painel consulta">
+<section class="painel consulta" data-search-url="{{ route('produtos.search') }}">
     <div class="painel-titulo">
         <h2>Lista de produtos</h2>
         <span id="contador" class="etiqueta"></span>
@@ -20,7 +20,7 @@
             </select></label
         >
     </div>
-    <div class="tabela-scroll">
+    <p id="busca-status" role="status" aria-live="polite" class="ajuda"></p><div class="tabela-scroll">
         <table>
             <thead>
                 <tr>
@@ -32,10 +32,10 @@
                     <th>Ações</th>
                 </tr>
             </thead>
-            <tbody id="resultados"></tbody>
+            <tbody id="resultados" aria-live="polite"></tbody>
         </table>
     </div>
-    <p id="vazio" class="vazio" hidden>
+    <div class="acoes"><button type="button" id="pagina-anterior" class="botao secundario">Anterior</button><span id="pagina-atual"></span><button type="button" id="pagina-proxima" class="botao secundario">Próxima</button></div><p id="vazio" class="vazio" hidden>
         Nenhum produto encontrado. Tente outro código ou nome.
     </p>
 </section>
